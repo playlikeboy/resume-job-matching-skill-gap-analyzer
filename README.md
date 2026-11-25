@@ -125,8 +125,14 @@ frontend/
 docs/
   submission/               Original BIT Mesra report & presentation PDFs
 examples/                   Sample resume, JD, API request, and synthetic eval JSONL
-.github/workflows/          CI workflows for backend tests and frontend build
+.github/workflows/          CI workflows for backend tests, frontend build, and Pages
 ```
+
+## Deployment
+
+- **GitHub Pages (Live Frontend Demo):** Automatically deployed via [`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml) to `https://playlikeboy.github.io/resume-job-matching-skill-gap-analyzer/`. When no FastAPI backend is connected, the UI seamlessly runs the browser-side fallback engine ([`localEngine.ts`](frontend/src/localEngine.ts)) for pasted text and `.txt` resumes.
+- **Docker Compose (Full Stack):** Run `docker compose up --build` using [`docker-compose.yml`](docker-compose.yml) (Frontend on port `3000`, Backend API on port `8000`).
+- **Render Blueprint:** [`render.yaml`](render.yaml) configures both the FastAPI Python web service and static React frontend for one-click deployment.
 
 ## Evaluation plan
 

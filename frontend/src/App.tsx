@@ -17,6 +17,7 @@ import {
   UploadCloud,
 } from "lucide-react";
 
+import { analyzeLocal, compareLocal } from "./localEngine";
 import { DEFAULT_COMPARE_JOBS, ROLE_PRESETS, SAMPLE_RESUME } from "./presets";
 import type { Analysis, CompareResult, JobComparisonInput, SkillMatch } from "./types";
 
@@ -162,15 +163,27 @@ export default function App() {
     if (!file) return;
     setError("");
     setFileName(file.name);
+    if (file.name.toLowerCase().endsWith(".txt")) {
+      const text = await file.text();
+      if (!text.trim()) {
+        setError("No readable text was found in this file.");
+        return;
+      }
+      setResumeText(text);
+      return;
+    }
     const body = new FormData();
     body.append("file", file);
     try {
       const response = await fetch(`${API_BASE}/api/resume/parse`, { method: "POST", body });
       const payload = await response.json();
-      if (!response.ok) throw new Error(payload.detail || "Could not parse this file.");
+      if (!response.ok) {
+        setError(payload.detail || "Could not parse this file.");
+        return;
+      }
       setResumeText(payload.text);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Resume upload failed.");
+    } catch {
+      setError("PDF/DOCX parsing requires a running FastAPI backend. Upload a .txt resume or paste text directly.");
     }
   }
 
@@ -178,20 +191,27 @@ export default function App() {
     setLoading(true);
     setError("");
     try {
-      const response = await fetch(`${API_BASE}/api/analyze`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          resume_text: resumeText,
-          job_description: jobDescription,
-          semantic_weight: semanticWeight,
-        }),
-      });
+      let response: Response | null = null;
+      try {
+        response = await fetch(`${API_BASE}/api/analyze`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            resume_text: resumeText,
+            job_description: jobDescription,
+            semantic_weight: semanticWeight,
+          }),
+        });
+      } catch {
+        // Backend unreachable (e.g., static GitHub Pages demo); run browser-side fallback engine.
+        setAnalysis(analyzeLocal(resumeText, jobDescription, semanticWeight));
+        return;
+      }
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.detail || "Analysis failed.");
       setAnalysis(payload);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not reach the analysis API. Is the backend running?");
+      setError(err instanceof Error ? err.message : "Analysis failed.");
     } finally {
       setLoading(false);
     }
@@ -201,20 +221,26 @@ export default function App() {
     setLoading(true);
     setError("");
     try {
-      const response = await fetch(`${API_BASE}/api/compare`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          resume_text: resumeText,
-          jobs: compareJobs,
-          semantic_weight: semanticWeight,
-        }),
-      });
+      let response: Response | null = null;
+      try {
+        response = await fetch(`${API_BASE}/api/compare`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            resume_text: resumeText,
+            jobs: compareJobs,
+            semantic_weight: semanticWeight,
+          }),
+        });
+      } catch {
+        setCompareResult(compareLocal(resumeText, compareJobs, semanticWeight));
+        return;
+      }
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.detail || "Comparison failed.");
       setCompareResult(payload);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not reach the comparison API. Is the backend running?");
+      setError(err instanceof Error ? err.message : "Comparison failed.");
     } finally {
       setLoading(false);
     }
