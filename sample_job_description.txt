@@ -1,0 +1,11 @@
+Software Engineering Intern
+
+Required qualifications
+- Strong Python and JavaScript fundamentals.
+- Experience building REST APIs using FastAPI or Express.js.
+- SQL and PostgreSQL knowledge.
+- Git and Docker familiarity.
+
+Preferred qualifications
+- React and TypeScript experience.
+- Exposure to NLP or Machine Learning.

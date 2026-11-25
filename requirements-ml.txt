@@ -1,0 +1,2 @@
+# Optional research dependency. Install only when running the embedding experiment.
+sentence-transformers>=3.0,<6.0

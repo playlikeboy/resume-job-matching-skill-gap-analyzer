@@ -1,0 +1,9 @@
+Alex Example
+Computer Science student
+
+Projects
+- Built REST APIs using Python and FastAPI.
+- Developed responsive interfaces with React and JavaScript.
+- Used PostgreSQL and SQL for structured data storage.
+- Worked with Git, Docker and Linux in team projects.
+- Completed a small NLP prototype with sentence embeddings.
