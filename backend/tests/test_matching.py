@@ -21,14 +21,62 @@ def test_required_and_preferred_weights_are_distinguished():
     assert by_skill["React"].weight == 1.0
 
 
-def test_exact_skill_evidence_is_a_strong_match():
+def test_ts_alias_does_not_misfire_on_requirements_word():
+    jd = (
+        "Required qualifications:\n"
+        "- Python and SQL.\n\n"
+        "Preferred qualifications:\n"
+        "- Experience with TS and React.\n"
+    )
+    requirements = extract_job_requirements(jd)
+    by_skill = {item.skill: item for item in requirements}
+    assert by_skill["Python"].importance == "required"
+    assert by_skill["TypeScript"].importance == "preferred"
+
+
+def test_long_preferred_section_preserves_heading_context():
+    filler = "Experience collaborating across agile product teams and documenting design choices. " * 6
+    jd = (
+        "Required qualifications:\n"
+        "- Python\n\n"
+        "Preferred qualifications:\n"
+        f"- {filler}\n"
+        "- Docker\n"
+    )
+    requirements = extract_job_requirements(jd)
+    by_skill = {item.skill: item for item in requirements}
+    assert by_skill["Python"].importance == "required"
+    assert by_skill["Docker"].importance == "preferred"
+
+
+def test_ambiguous_english_words_do_not_trigger_false_positives():
+    found = extract_skills(
+        "I want to express interest in this role and go to the next round."
+    )
+    assert "Express.js" not in found
+    assert "Go" not in found
+
+    tech_found = extract_skills("Built microservices in Go and Express.js.")
+    assert "Go" in tech_found
+    assert "Express.js" in tech_found
+
+
+def test_negated_resume_mention_is_ignored():
+    found = extract_skills("Built APIs with Python. No prior experience with Kubernetes.")
+    assert "Python" in found
+    assert "Kubernetes" not in found
+
+
+def test_exact_skill_evidence_is_a_strong_match_and_consistent_semantic_score():
     result = analyze_resume_job(
-        "Built APIs with Python and FastAPI. Used PostgreSQL for persistence.",
-        "Required: Python, FastAPI and PostgreSQL.",
+        "Built APIs with JS and FastAPI. Used postgres for persistence.",
+        "Required: JavaScript, FastAPI and PostgreSQL.",
     )
     assert result.requirements_found == 3
     assert result.strong_matches == 3
     assert result.coverage_score == 100.0
+    assert result.semantic_score == 100.0
+    assert result.overall_score == 100.0
     assert all(item.evidence for item in result.matched_skills)
 
 
@@ -50,7 +98,6 @@ def test_preferred_skills_have_lower_weight():
     react = next(item for item in result.missing_skill_matches if item.skill == "React")
     assert python.weight == 2.0
     assert react.weight == 1.0
-
 
 
 def test_related_technology_is_only_a_partial_match():

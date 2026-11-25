@@ -1,9 +1,15 @@
 {
   "project": "Intelligent Resume–Job Matching & Explainable Skill Gap Analyzer",
-  "version": "0.1.0",
+  "version": "0.2.0",
+  "repository": "https://github.com/playlikeboy/resume-job-matching-skill-gap-analyzer",
+  "stack": {
+    "backend": ["Python 3.11", "FastAPI", "Pydantic", "PyMuPDF", "python-docx"],
+    "frontend": ["React 18", "TypeScript", "Vite", "Lucide Icons"],
+    "ml_optional": ["Sentence Transformers (all-MiniLM-L6-v2)"]
+  },
   "source_documents": [
-    "Project_Report_Template.pdf",
-    "Guidelines_for_Project_Presentation.pdf",
-    "Resume_Job_Matching_Skill_Gap_Analyzer_Short_Proposal.pdf"
+    "docs/submission/Project_Report_Template.pdf",
+    "docs/submission/Guidelines_for_Project_Presentation.pdf",
+    "docs/submission/Resume_Job_Matching_Skill_Gap_Analyzer_Short_Proposal.pdf"
   ]
 }

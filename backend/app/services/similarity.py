@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-import os
 import re
 from functools import lru_cache
 
+from app.config import get_settings
 from app.services.taxonomy import RELATED_SKILLS
 
 
@@ -11,19 +11,19 @@ def _tokens(value: str) -> set[str]:
     return {token for token in re.findall(r"[a-z0-9+#.]+", value.lower()) if len(token) > 1}
 
 
-@lru_cache(maxsize=1)
-def _load_model():
+@lru_cache(maxsize=2)
+def _load_model(model_name: str):
     from sentence_transformers import SentenceTransformer
-    model_name = os.getenv("SENTENCE_TRANSFORMER_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
     return SentenceTransformer(model_name)
 
 
 def semantic_similarity(skill: str, resume_text: str, resume_skills: set[str]) -> tuple[float, str]:
     """Return best similarity signal and its mode; it is not a proficiency estimate."""
-    if os.getenv("USE_SENTENCE_TRANSFORMERS", "false").lower() in {"1", "true", "yes"}:
+    settings = get_settings()
+    if settings.use_sentence_transformers:
         try:
             import numpy as np
-            model = _load_model()
+            model = _load_model(settings.sentence_transformer_model)
             # Compare the target skill to resume-sized sentence fragments, not to the full document only.
             fragments = [part.strip() for part in re.split(r"[\n.!?;]+", resume_text) if part.strip()]
             if not fragments:

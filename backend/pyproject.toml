@@ -1,0 +1,10 @@
+[project]
+name = "resume-job-matching-backend"
+version = "0.2.0"
+description = "Explainable resume-to-job matching and skill-gap analysis API."
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+addopts = "-q"

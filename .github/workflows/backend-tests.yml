@@ -4,10 +4,12 @@ on:
   push:
     paths:
       - "backend/**"
+      - "examples/**"
       - ".github/workflows/backend-tests.yml"
   pull_request:
     paths:
       - "backend/**"
+      - "examples/**"
       - ".github/workflows/backend-tests.yml"
 
 jobs:
@@ -24,4 +26,5 @@ jobs:
           cache: "pip"
           cache-dependency-path: backend/requirements.txt
       - run: pip install -r requirements.txt
-      - run: pytest -q
+      - run: pytest -v
+      - run: python scripts/evaluate.py
