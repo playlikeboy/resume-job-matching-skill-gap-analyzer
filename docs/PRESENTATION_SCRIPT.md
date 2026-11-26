@@ -14,7 +14,7 @@ This guide prepares **Shaswat Raj (`BTECH/10574/24`)** and **Satyam Hansda (`BTE
 - **Resources to keep open before your turn:**
   1. **Live Streamlit App:** `https://resume-job-matching-skill-gap-analyzer.streamlit.app/`
   2. **Canva Presentation:** `https://canva.link/wy8akal2lz3jieq` (or local [`docs/Matchwise_5th_Sem_Presentation.pptx`](Matchwise_5th_Sem_Presentation.pptx))
-  3. **Canva Project Report:** `https://canva.link/dbscv9ufhqzi9p0` (and PDF [`docs/Minor_Project_Report_2.pdf`](Minor_Project_Report_2.pdf))
+  3. **Project Report (PDF):** [`docs/Minor_Project_Report_2.pdf`](Minor_Project_Report_2.pdf) (and Word source [`docs/Minor_Project_Report_2.docx`](Minor_Project_Report_2.docx))
 
 ---
 

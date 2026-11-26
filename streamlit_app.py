@@ -32,7 +32,7 @@ RESUME_PAGE_URL = "https://playlikeboy.github.io/resume"
 LIVE_APP_URL = "https://resume-job-matching-skill-gap-analyzer.streamlit.app/"
 REPO_URL = "https://github.com/playlikeboy/resume-job-matching-skill-gap-analyzer"
 CANVA_PPT_URL = "https://canva.link/wy8akal2lz3jieq"
-CANVA_REPORT_URL = "https://canva.link/dbscv9ufhqzi9p0"
+REPORT_GITHUB_URL = f"{REPO_URL}/blob/main/docs/Minor_Project_Report_2.pdf"
 PPT_GITHUB_URL = f"{REPO_URL}/blob/main/docs/Matchwise_5th_Sem_Presentation.pptx"
 PPT_VIEWER_URL = (
     "https://view.officeapps.live.com/op/view.aspx?src="
@@ -923,9 +923,9 @@ def main() -> None:
             f"Partial threshold: `{settings.semantic_partial_threshold:.2f}`"
         )
         st.divider()
-        st.markdown("### Canva, Report & Docs")
+        st.markdown("### Project Docs & Links")
         st.markdown(f"- [Canva PPT (14 Slides)]({CANVA_PPT_URL})")
-        st.markdown(f"- [Canva Project Report]({CANVA_REPORT_URL})")
+        st.markdown(f"- [Project Report (PDF)]({REPORT_GITHUB_URL})")
         st.markdown(f"- [PowerPoint Web Viewer]({PPT_VIEWER_URL})")
         st.markdown(f"- [Easy → Advanced Guide]({GUIDE_URL})")
         st.markdown(f"- [PPT Presenter Script & Q&A]({SCRIPT_URL})")
@@ -965,12 +965,11 @@ def main() -> None:
         unsafe_allow_html=True,
     )
 
-    q1, q2, q3, q4, q5 = st.columns(5)
+    q1, q2 = st.columns(2)
     q1.link_button("Canva PPT", CANVA_PPT_URL, use_container_width=True)
-    q2.link_button("Canva Report", CANVA_REPORT_URL, use_container_width=True)
     if REPORT_PDF_PATH.exists():
-        q3.download_button(
-            "Report PDF",
+        q2.download_button(
+            "Project Report",
             data=REPORT_PDF_PATH.read_bytes(),
             file_name="Minor_Project_Report_2.pdf",
             mime="application/pdf",
@@ -978,9 +977,7 @@ def main() -> None:
             use_container_width=True,
         )
     else:
-        q3.link_button("PowerPoint", PPT_VIEWER_URL, use_container_width=True)
-    q4.link_button("Learning Guide", GUIDE_URL, use_container_width=True)
-    q5.link_button("playlikeboy.github.io", PORTFOLIO_URL, use_container_width=True)
+        q2.link_button("Project Report", REPORT_GITHUB_URL, use_container_width=True)
 
     mode = st.radio(
         "Workspace",
