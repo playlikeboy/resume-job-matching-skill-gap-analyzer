@@ -3,8 +3,8 @@
   "version": "0.2.0",
   "repository": "https://github.com/playlikeboy/resume-job-matching-skill-gap-analyzer",
   "stack": {
+    "frontend": ["Streamlit", "Plotly"],
     "backend": ["Python 3.11", "FastAPI", "Pydantic", "PyMuPDF", "python-docx"],
-    "frontend": ["React 18", "TypeScript", "Vite", "Lucide Icons"],
     "ml_optional": ["Sentence Transformers (all-MiniLM-L6-v2)"]
   },
   "source_documents": [

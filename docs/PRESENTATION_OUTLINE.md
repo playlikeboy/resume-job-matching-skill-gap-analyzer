@@ -13,7 +13,7 @@ The uploaded **Guidelines for Project Presentation.pdf** requires 12–15 slides
 7. **Dataset and annotation** — sources, privacy, labels and split design.
 8. **System architecture** — resume/JD input through parsing, matching and dashboard.
 9. **Methodology** — taxonomy, required/preferred weights, match labels and formulas.
-10. **Tools and techniques** — React, FastAPI, PyMuPDF, spaCy/taxonomy, Sentence Transformers.
+10. **Tools and techniques** — Streamlit, Plotly, Python, PyMuPDF, python-docx, curated taxonomy, Sentence Transformers, FastAPI (optional).
 11. **Application demo** — sample input and evidence-based result.
 12. **Results and discussion** — baseline vs hybrid metrics and error analysis (real results only).
 13. **Conclusion and future work** — findings, limitations, OCR, broader roles and consented portfolio evidence.

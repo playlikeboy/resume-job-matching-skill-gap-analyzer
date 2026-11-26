@@ -1,30 +1,37 @@
-name: backend-tests
+name: backend-and-streamlit-tests
 
 on:
   push:
     paths:
       - "backend/**"
       - "examples/**"
+      - "streamlit_app.py"
+      - "requirements.txt"
+      - ".streamlit/**"
       - ".github/workflows/backend-tests.yml"
   pull_request:
     paths:
       - "backend/**"
       - "examples/**"
+      - "streamlit_app.py"
+      - "requirements.txt"
+      - ".streamlit/**"
       - ".github/workflows/backend-tests.yml"
 
 jobs:
   test:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
           cache: "pip"
-          cache-dependency-path: backend/requirements.txt
-      - run: pip install -r requirements.txt
-      - run: pytest -v
-      - run: python scripts/evaluate.py
+          cache-dependency-path: |
+            requirements.txt
+            backend/requirements.txt
+      - run: pip install -r requirements.txt -r backend/requirements.txt
+      - working-directory: backend
+        run: pytest -v
+      - working-directory: backend
+        run: python scripts/evaluate.py

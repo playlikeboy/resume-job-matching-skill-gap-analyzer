@@ -1,4 +1,4 @@
-.PHONY: backend-test backend-eval backend-run frontend-install frontend-dev frontend-build
+.PHONY: backend-test backend-eval backend-run streamlit-install streamlit-run
 
 backend-test:
 	cd backend && pytest -q
@@ -9,11 +9,8 @@ backend-eval:
 backend-run:
 	cd backend && uvicorn app.main:app --reload --port 8000
 
-frontend-install:
-	cd frontend && npm install
+streamlit-install:
+	pip install -r requirements.txt
 
-frontend-dev:
-	cd frontend && npm run dev
-
-frontend-build:
-	cd frontend && npm run build
+streamlit-run:
+	streamlit run streamlit_app.py

@@ -2,7 +2,7 @@
 
 A research-oriented career-readiness web application (**matchwise.**) that compares a candidate's resume with one or more job descriptions, identifies demonstrated and missing skills with evidence snippets, explains its score, and generates a prioritized learning roadmap.
 
-> **Project status:** Functional prototype (`v0.2.0`). The deterministic matching pipeline, multi-role comparison API, interactive React dashboard, and synthetic starter benchmark harness are implemented; real-world human-annotated evaluation (`B0` vs `B1` vs `H1`) remains governed by [`docs/EXPERIMENTAL_PROTOCOL.md`](docs/EXPERIMENTAL_PROTOCOL.md).
+> **Project status:** Functional prototype (`v0.2.0`). The deterministic matching pipeline, multi-role comparison engine, interactive **Streamlit** dashboard, and synthetic starter benchmark harness are implemented; real-world human-annotated evaluation (`B0` vs `B1` vs `H1`) remains governed by [`docs/EXPERIMENTAL_PROTOCOL.md`](docs/EXPERIMENTAL_PROTOCOL.md).
 
 ## What it does
 
@@ -11,8 +11,9 @@ A research-oriented career-readiness web application (**matchwise.**) that compa
 - Parses job descriptions with **section-aware** and **inline marker** detection to weight **required (`2.0`)** vs **preferred (`1.0`)** skills.
 - Computes a transparent **weighted coverage score**, **semantic similarity signal**, **domain category breakdown**, and **hybrid score** (configurable `semantic_weight` from `0%` to `50%`).
 - Labels requirements as **Strong match**, **Partial match**, or **Missing**, and surfaces additional resume skills not listed in the job description.
-- Compares and ranks up to **5 target job descriptions** against a single resume (`POST /api/compare`).
+- Compares and ranks up to **5 target job descriptions** against a single resume.
 - Produces a prioritized **learning roadmap** (required gaps first) and supports **Markdown / JSON report export**.
+- Includes a searchable **Skill Taxonomy & Benchmark** view (`B0` vs `B1` vs `H1`).
 
 ## Research question
 
@@ -31,46 +32,45 @@ flowchart LR
   E --> G[Evidence-aware matching]
   F --> G
   G --> H[Weighted coverage + semantic signal]
-  H --> I[Explainable dashboard + export]
+  H --> I[Streamlit dashboard + export]
   I --> J[Prioritized learning roadmap]
 ```
 
-- **Frontend:** React 18 + TypeScript + Vite
-- **Backend:** Python 3.11 + FastAPI + Pydantic
+- **UI / App:** Streamlit + Plotly ([`streamlit_app.py`](streamlit_app.py))
+- **Core Engine & Optional API:** Python 3.11+ + Pydantic + FastAPI ([`backend/app/`](backend/app/))
 - **Resume parsing:** PyMuPDF and python-docx (plus UTF-8/Latin-1 TXT)
 - **NLP baseline:** curated taxonomy (50+ skills), alias normalization, negation filtering, and span-accurate contextual extraction
 - **Semantic experiment:** Sentence Transformers (`all-MiniLM-L6-v2`, optional) with rule-based fallback
-- **Testing & Evaluation:** `pytest` + reproducible comparison script (`backend/scripts/evaluate.py`)
+- **Testing & Evaluation:** `pytest` (including Streamlit `AppTest`) + reproducible comparison script ([`backend/scripts/evaluate.py`](backend/scripts/evaluate.py))
 
 See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for component details and [`docs/PROJECT_PLAN.md`](docs/PROJECT_PLAN.md) for the semester roadmap.
 
 ## Quick start
 
-### 1. Backend
+### 1. Run the Streamlit app locally
 
 ```bash
-cd backend
 python3 -m venv .venv
 # macOS / Linux
 source .venv/bin/activate
 # Windows PowerShell: .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
+streamlit run streamlit_app.py
+```
+
+Open `http://localhost:8501` in your browser.
+
+### 2. Optional FastAPI REST service
+
+If you also want to expose the JSON API endpoints:
+
+```bash
+cd backend
+pip install -r requirements.txt
 uvicorn app.main:app --reload --port 8000
 ```
 
-API docs: http://localhost:8000/docs
-
-### 2. Frontend
-
-In a second terminal:
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Open the local URL printed by Vite. The frontend expects the API at `http://localhost:8000` by default; set `VITE_API_BASE_URL` to override it.
+API docs: `http://localhost:8000/docs`.
 
 ### 3. Run tests & starter benchmark
 
@@ -80,7 +80,7 @@ pytest -v
 python scripts/evaluate.py
 ```
 
-Or use the root `Makefile` shortcuts (`make backend-test`, `make backend-eval`, `make frontend-build`).
+Or use the root `Makefile` shortcuts (`make streamlit-run`, `make backend-test`, `make backend-eval`).
 
 ### 4. Enable embedding similarity (optional)
 
@@ -89,50 +89,46 @@ cd backend
 pip install -r requirements-ml.txt
 ```
 
-Set `USE_SENTENCE_TRANSFORMERS=true` before starting the API. The first model run may download `sentence-transformers/all-MiniLM-L6-v2`. For an offline or lightweight demo, leave this disabled; the API clearly reports which semantic mode was used.
+Set `USE_SENTENCE_TRANSFORMERS=true` before launching Streamlit (or in Streamlit Cloud **Secrets**). The first model run downloads `sentence-transformers/all-MiniLM-L6-v2`. For an offline or lightweight demo, leave this disabled; the app clearly reports which semantic mode was used.
 
-## Example API requests
+## Deployment on Streamlit Community Cloud
 
-Single resume–job analysis:
+This repository is ready for one-click deployment on **Streamlit Community Cloud**:
 
-```bash
-curl -X POST http://localhost:8000/api/analyze \
-  -H 'Content-Type: application/json' \
-  -d @examples/sample_request.json
-```
+1. Push this repository to GitHub.
+2. Open [Streamlit Community Cloud](https://share.streamlit.io/) and click **New app** (or use the direct deploy link after pushing: `https://share.streamlit.io/deploy?repository=playlikeboy/resume-job-matching-skill-gap-analyzer&branch=main&mainModule=streamlit_app.py`).
+3. Select:
+   - **Repository:** `playlikeboy/resume-job-matching-skill-gap-analyzer`
+   - **Branch:** `main`
+   - **Main file path:** `streamlit_app.py`
+4. Click **Deploy** — Streamlit Cloud automatically installs root [`requirements.txt`](requirements.txt) and applies [`.streamlit/config.toml`](.streamlit/config.toml).
 
-Supported endpoints:
-- `GET /api/health` — health check and active semantic mode
-- `GET /api/taxonomy` — curated skill taxonomy grouped by domain
-- `POST /api/resume/parse` — extract text from PDF, DOCX, or TXT uploads
-- `POST /api/analyze` — single resume vs. job description analysis
-- `POST /api/compare` — rank up to 5 job descriptions against one resume
+### Other deployment options
+
+- **Docker / Docker Compose:** Run `docker compose up --build` using [`docker-compose.yml`](docker-compose.yml) (Streamlit UI on port `8501`, optional FastAPI API on port `8000`), or build the root [`Dockerfile`](Dockerfile) directly.
+- **Render Blueprint:** [`render.yaml`](render.yaml) configures both `matchwise-streamlit` and `matchwise-api`.
 
 ## Project structure
 
 ```text
+streamlit_app.py            Streamlit UI (Single Role, Multi-Role Compare, Taxonomy & Benchmark)
+requirements.txt            Root Python dependencies for Streamlit & Community Cloud
+.streamlit/config.toml      Streamlit dark navy & teal theme and server config
+Dockerfile                  Container image for Streamlit app
 backend/
   app/
-    main.py                 FastAPI application and endpoints
+    main.py                 Optional FastAPI application and endpoints
     config.py               Centralized environment settings
     schemas.py              Pydantic request/response contracts
     services/               Parsing, taxonomy, extraction, matching, roadmap
   scripts/
     evaluate.py             B0 vs B1 vs H1 benchmark comparison script
-  tests/                    Pytest API, matching, and evaluation test suites
-frontend/
-  src/                      React + TypeScript dashboard, presets, and styles
+  tests/                    Pytest matching, evaluation, API, and Streamlit AppTest suites
 docs/
   submission/               Original BIT Mesra report & presentation PDFs
 examples/                   Sample resume, JD, API request, and synthetic eval JSONL
-.github/workflows/          CI workflows for backend tests, frontend build, and Pages
+.github/workflows/          CI workflows for backend and Streamlit tests
 ```
-
-## Deployment
-
-- **GitHub Pages (Live Frontend Demo):** Automatically deployed via [`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml) to `https://playlikeboy.github.io/resume-job-matching-skill-gap-analyzer/`. When no FastAPI backend is connected, the UI seamlessly runs the browser-side fallback engine ([`localEngine.ts`](frontend/src/localEngine.ts)) for pasted text and `.txt` resumes.
-- **Docker Compose (Full Stack):** Run `docker compose up --build` using [`docker-compose.yml`](docker-compose.yml) (Frontend on port `3000`, Backend API on port `8000`).
-- **Render Blueprint:** [`render.yaml`](render.yaml) configures both the FastAPI Python web service and static React frontend for one-click deployment.
 
 ## Evaluation plan
 

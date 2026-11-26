@@ -1,4 +1,13 @@
 services:
+  streamlit:
+    build:
+      context: .
+    ports:
+      - "8501:8501"
+    environment:
+      - USE_SENTENCE_TRANSFORMERS=false
+      - SEMANTIC_PARTIAL_THRESHOLD=0.48
+
   backend:
     build:
       context: ./backend
@@ -7,14 +16,3 @@ services:
     environment:
       - USE_SENTENCE_TRANSFORMERS=false
       - SEMANTIC_PARTIAL_THRESHOLD=0.48
-      - CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000
-
-  frontend:
-    build:
-      context: ./frontend
-      args:
-        VITE_API_BASE_URL: http://localhost:8000
-    ports:
-      - "3000:80"
-    depends_on:
-      - backend

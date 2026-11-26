@@ -1,5 +1,16 @@
 services:
   - type: web
+    name: matchwise-streamlit
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: streamlit run streamlit_app.py --server.port $PORT --server.address 0.0.0.0
+    envVars:
+      - key: USE_SENTENCE_TRANSFORMERS
+        value: "false"
+      - key: SEMANTIC_PARTIAL_THRESHOLD
+        value: "0.48"
+
+  - type: web
     name: matchwise-api
     runtime: python
     rootDir: backend
@@ -11,18 +22,3 @@ services:
         value: "false"
       - key: SEMANTIC_PARTIAL_THRESHOLD
         value: "0.48"
-      - key: CORS_ORIGINS
-        value: "https://playlikeboy.github.io"
-
-  - type: web
-    name: matchwise-web
-    runtime: static
-    rootDir: frontend
-    buildCommand: npm install && npm run build
-    staticPublishPath: dist
-    envVars:
-      - key: VITE_API_BASE_URL
-        fromService:
-          type: web
-          name: matchwise-api
-          envVarKey: RENDER_EXTERNAL_URL
