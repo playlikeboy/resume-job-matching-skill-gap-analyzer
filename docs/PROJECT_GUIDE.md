@@ -1,191 +1,171 @@
 # Complete Learning Guide: `matchwise.` (Easy → Advanced)
 
-Welcome! This guide explains the entire **Intelligent Resume–Job Matching & Explainable Skill Gap Analyzer (`matchwise.`)** project step by step—starting from plain-English intuition and moving all the way down to the exact regex patterns, scoring math, Streamlit UI state management, evaluation harness, and deployment.
+Welcome! This guide teaches the entire **Intelligent Resume–Job Matching & Explainable Skill Gap Analyzer (`matchwise.`)** from zero to deep mastery—using concrete examples, actual code walkthroughs, solved bugs, viva Q&A, and complete step-by-step run instructions.
 
 - **Live Streamlit App:** [https://resume-job-matching-skill-gap-analyzer.streamlit.app/](https://resume-job-matching-skill-gap-analyzer.streamlit.app/)
-- **Canva Presentation:** [https://canva.link/b49q19khynjv1j9](https://canva.link/b49q19khynjv1j9)
-- **5th-Semester Presentation (PPTX):** [`docs/Matchwise_5th_Sem_Presentation.pptx`](Matchwise_5th_Sem_Presentation.pptx)
+- **Canva Presentation (14 Slides):** [https://canva.link/b49q19khynjv1j9](https://canva.link/b49q19khynjv1j9)
+- **Canva Project Report:** [https://canva.link/5n32fpxtsql4sbn](https://canva.link/5n32fpxtsql4sbn)
+- **Presenter Script & Viva Q&A:** [`docs/PRESENTATION_SCRIPT.md`](PRESENTATION_SCRIPT.md)
 - **Minor Project Report:** [`docs/Minor_Project_Report_2.pdf`](Minor_Project_Report_2.pdf) · [`docs/Minor_Project_Report_2.docx`](Minor_Project_Report_2.docx)
-- **Team & Guide:** Shaswat Raj (`BTECH/10574/24`), Satyam Hansda (`BTECH/10616/24`) — Guided by Dr. Sumit Srivastava, Assistant Professor, Dept. of CSE, BIT Mesra
-- **Portfolio & Sample Resume Source:** [https://playlikeboy.github.io/](https://playlikeboy.github.io/) · [https://playlikeboy.github.io/resume](https://playlikeboy.github.io/resume)
-- **Repository:** [https://github.com/playlikeboy/resume-job-matching-skill-gap-analyzer](https://github.com/playlikeboy/resume-job-matching-skill-gap-analyzer)
+- **Author Portfolio & 7 Sample Resume PDFs:** [https://playlikeboy.github.io/](https://playlikeboy.github.io/) · [https://playlikeboy.github.io/resume](https://playlikeboy.github.io/resume)
+- **Team & Guide:** Shaswat Raj (`BTECH/10574/24`), Satyam Hansda (`BTECH/10616/24`) — Guided by **Dr. Sumit Srivastava**, Assistant Professor, Dept. of CSE, BIT Mesra
 
 ---
 
-## Level 1 — Beginner: What Problem Are We Solving?
+## Level 1 — Beginner: The Intuition in 60 Seconds
 
-Imagine you are a 5th-semester CS student applying for internships. You have a PDF resume and 5 job descriptions (JDs). You want to know:
+Think of `matchwise.` as a **transparent career coach** that sits between your resume and a job description (JD):
 
-1. **Which skills do I already prove in my resume?** (with the exact line from my resume so I can verify it!)
-2. **Which skills are mandatory vs "nice to have"?**
-3. **Which skills am I missing, and what should I build next to close those gaps?**
+1. You give it a **resume** (PDF, DOCX, TXT, pasted text, or one of the **7 real PDFs** from `playlikeboy.github.io` + Alex Example).
+2. You give it **1 job description** (or up to **5 roles** to compare side by side).
+3. Instead of giving a mystery percentage like most ATS checkers, `matchwise.` answers four exact questions:
+   - **What did the job ask for, and how important is each skill?** (`Required = 2.0`, `Preferred = 1.0`)
+   - **Where does your resume prove each skill?** (exact quoted sentence from your resume!)
+   - **Which skills are Strong (`1.0`), Partial (`0.5`), or Missing (`0.0`)?**
+   - **What should you learn and build next?** (prioritized 12-step roadmap starting with missing required skills)
 
-### Why simple keyword matching fails
-If a tool only checks exact words:
-- It misses **synonyms/aliases**: your resume says `JS`, `k8s`, or `postgres`, while the JD asks for `JavaScript`, `Kubernetes`, or `PostgreSQL`.
-- It triggers **false positives** on English words: `"I want to express interest and go to the next round"` accidentally matches `Express.js` and `Go`!
-- It falls for **negations**: `"No prior experience with Kubernetes"` gets counted as knowing Kubernetes!
-- It gives **no explanation**: a random number like `"72%"` doesn't tell you *why* or *what to learn next*.
-
-`matchwise.` solves all four problems transparently.
+### Why simple keyword counters fail (4 classic traps)
+| Trap | Example | What Naive Tools Do | What `matchwise.` Does |
+|---|---|---|---|
+| **Alias Blindness** | Resume says `JS`, `k8s`, `postgres` | Marks as Missing | Normalizes to `JavaScript`, `Kubernetes`, `PostgreSQL` |
+| **English Word Collision** | `"express interest and go forward"` | Falsely detects `Express.js` & `Go` | Case-sensitive `"Go"` + excluded-word lookahead on `"express"` |
+| **Negation Blindness** | `"No prior experience with Kubernetes"` | Counts `Kubernetes` as a match! | 55-char negation window rejects it on resumes |
+| **No Next Step** | Score = `64%` | Leaves candidate confused | Shows missing required gaps + tasks & project ideas |
 
 ---
 
-## Level 2 — Intermediate: How Data Flows Through the System
+## Level 2 — Intermediate: Trace One Real Example End-to-End
+
+Suppose we pass this **resume snippet** and **JD snippet** into `analyze_resume_job()`:
+
+- **Resume:** `"Built REST services with FastAPI and Python. Used postgres. No prior experience with Kubernetes."`
+- **JD:** `"Required: Python, REST APIs, PostgreSQL. Preferred: Kubernetes."`
+
+Watch what each module does step-by-step:
+
+1. **`extractors.py` (if uploaded as PDF/DOCX):**
+   Reads uploaded bytes in memory using `PyMuPDF` (`fitz`) or `python-docx`—never writing files to disk.
+2. **`skill_extraction.py` on Resume (`ignore_negated=True`):**
+   - `"Python"` → **Found** (alias `"Python"`, evidence = `"Built REST services with FastAPI and Python."`)
+   - `"FastAPI"` → **Found** (alias `"FastAPI"`)
+   - `"PostgreSQL"` → **Found** via alias `"postgres"`!
+   - `"Kubernetes"` → Matched by regex, **rejected by `_is_negated()`** because `"No prior experience with "` precedes it!
+3. **`requirements.py` on JD (`ignore_negated=False`):**
+   - `Python` → `required` (`w = 2.0`)
+   - `REST APIs` → `required` (`w = 2.0`)
+   - `PostgreSQL` → `required` (`w = 2.0`)
+   - `Kubernetes` → `preferred` (`w = 1.0`, because `"Preferred:"` precedes it)
+4. **`similarity.py` + `analysis.py` Matching:**
+   - `Python` (`w=2`): direct hit → **Strong** (`m = 1.0`, `σ = 1.0`)
+   - `PostgreSQL` (`w=2`): direct alias hit (`postgres`) → **Strong** (`m = 1.0`, `σ = 1.0`)
+   - `REST APIs` (`w=2`): not directly in resume, but `RELATED_SKILLS["REST APIs"]` contains `FastAPI` (which IS in resume!) → fallback similarity `σ = 0.55 ≥ 0.48` → **Partial** (`m = 0.5`)
+   - `Kubernetes` (`w=1`): negated on resume, and only `Python`/`FastAPI`/`PostgreSQL` present (not in `RELATED_SKILLS["Kubernetes"]`) → `σ = 0.0 < 0.48` → **Missing** (`m = 0.0`)
+5. **Final Score Calculation (`α = 0.25`):**
+   - Total weight = `2 + 2 + 2 + 1 = 7.0`
+   - Coverage = `100 × (2×1.0 + 2×1.0 + 2×0.5 + 1×0.0) / 7.0 = 500 / 7.0 = 71.43%`
+   - Semantic = `100 × (2×1.0 + 2×1.0 + 2×0.55 + 1×0.0) / 7.0 = 510 / 7.0 = 72.86%`
+   - Overall = `0.75 × 71.43 + 0.25 × 72.86 = 71.79%` (**Moderate alignment**)
+6. **`roadmap.py` Output:**
+   - Step 1 (**High priority**): `Kubernetes` (Missing)
+   - Step 2 (**Medium priority**): `REST APIs` (Partial)
+
+---
+
+## Level 3 — Code Architecture & File-by-File Map
 
 ```text
-  Resume (PDF / DOCX / TXT / Pasted Text)       Job Description(s) (1 to 5 Roles)
-                  │                                             │
-                  ▼                                             ▼
-    [1. Text Extraction]                         [2. Requirement Parser]
-    extractors.py (in-memory)                    requirements.py (headings + inline)
-                  │                                             │
-                  ▼                                             ▼
-    [3. Skill Extractor]                         [4. Importance Weighting]
-    skill_extraction.py                          required (2.0) vs preferred (1.0)
-                  │                                             │
-                  └──────────────────┬──────────────────────────┘
-                                     ▼
-                       [5. Evidence-Aware Matcher]
-                       analysis.py + similarity.py
-                       Strong (1.0) / Partial (0.5) / Missing (0.0)
-                                     │
-                    ┌────────────────┴────────────────┐
-                    ▼                                 ▼
-      [6. Streamlit + Plotly UI]         [7. Prioritized Learning Roadmap]
-      streamlit_app.py                   roadmap.py (tasks + project ideas)
+streamlit_app.py                  ← Interactive UI, 7+1 sample resumes, 5 presets, Plotly charts
+backend/app/
+  ├── config.py                   ← Settings via env vars (MAX_UPLOAD_MB, SEMANTIC_PARTIAL_THRESHOLD, etc.)
+  ├── schemas.py                  ← Typed Pydantic contracts (AnalysisResult, CompareResult, SkillMatch, LearningStep)
+  ├── main.py                     ← Optional FastAPI HTTP server (/api/analyze, /api/compare, /api/resume/parse)
+  └── services/
+      ├── extractors.py           ← In-memory PDF (PyMuPDF), DOCX (python-docx), TXT extraction
+      ├── taxonomy.py             ← 54 canonical skills, 87 aliases across 12 domains + RELATED_SKILLS
+      ├── skill_extraction.py     ← Boundary-aware regex, negation filter, evidence snippet builder
+      ├── requirements.py         ← Section headings + local window + inline preferred/required parser
+      ├── similarity.py           ← Rule-based fallback OR Sentence Transformers (all-MiniLM-L6-v2)
+      ├── analysis.py             ← Coverage, semantic, hybrid score, domain breakdown, multi-role ranking
+      └── roadmap.py              ← Prioritized 12-step task & project-idea generator
+backend/scripts/evaluate.py       ← Reproducible B0 vs B1 vs H1 benchmark script
+backend/tests/                    ← 22 automated pytest tests (matching, evaluation, FastAPI, Streamlit AppTest)
+examples/resumes/                 ← 7 real PDF resumes from playlikeboy.github.io/resume*
 ```
 
-### Project File Map
-- [`streamlit_app.py`](../streamlit_app.py) — Interactive web UI (Single Role Analysis, Compare Multiple Roles, Skill Taxonomy & Benchmark).
-- [`backend/app/services/extractors.py`](../backend/app/services/extractors.py) — Reads PDF (`PyMuPDF`), DOCX (`python-docx`), and TXT bytes in memory.
-- [`backend/app/services/taxonomy.py`](../backend/app/services/taxonomy.py) — Curated dictionary of `54` canonical skills (`SKILLS`) across `12` domains plus conservative `RELATED_SKILLS`.
-- [`backend/app/services/skill_extraction.py`](../backend/app/services/skill_extraction.py) — Boundary-aware regex matching, alias normalization, negation filtering, and evidence snippet extraction.
-- [`backend/app/services/requirements.py`](../backend/app/services/requirements.py) — Classifies each JD skill as `required` (`2.0`) or `preferred` (`1.0`).
-- [`backend/app/services/similarity.py`](../backend/app/services/similarity.py) — Computes semantic similarity using either `rule-based-fallback` or optional `sentence-transformers`.
-- [`backend/app/services/analysis.py`](../backend/app/services/analysis.py) — Orchestrates scoring, category breakdown, and multi-role comparison.
-- [`backend/app/services/roadmap.py`](../backend/app/services/roadmap.py) — Converts missing and partial skills into prioritized learning tasks & project ideas.
-- [`backend/app/schemas.py`](../backend/app/schemas.py) & [`backend/app/config.py`](../backend/app/config.py) — Pydantic data contracts and environment configuration.
-- [`backend/app/main.py`](../backend/app/main.py) — Optional FastAPI REST API exposing the same engine over HTTP.
-- [`backend/scripts/evaluate.py`](../backend/scripts/evaluate.py) — Benchmark script comparing `B0` vs `B1` vs `H1` on [`examples/evaluation_dataset.jsonl`](../examples/evaluation_dataset.jsonl).
+### Real Bugs & Subtle Edge Cases Solved in This Codebase
+1. **Why `\b` fails on `C++` and `CI/CD`:** Python's `\b` checks transitions between `\w` and `\W`. Since `+` in `C++` is `\W`, `C++\b` fails! Solution in `skill_extraction.py`: `(?<![A-Za-z0-9]){escaped}(?![A-Za-z0-9])`.
+2. **Why `TS` won't match `"requirements"`:** `(?<![A-Za-z0-9])ts(?![A-Za-z0-9])` fails inside `"requirements"` because `n` precedes `ts`.
+3. **Why long Preferred sections used to lose context:** Early regex windows only looked back 250 characters. `_build_line_sections()` in `requirements.py` parses colon-ended or standalone headings across the whole JD so even 10-line Preferred sections keep `weight = 1.0`.
+4. **Why Streamlit `st.tabs` + dynamic lists broke state:** Two tabs rendering `st.text_area(..., key="resume_text")` trigger `DuplicateWidgetID`, and deleting an item from a list shifts indices. Solution in `streamlit_app.py`: horizontal workspace switcher (`st.radio`) + monotonic unique `id` per compare job (`cmp_title_{job_id}`).
+5. **Why Streamlit buttons/metrics showed `...`:** Narrow `st.columns(...)` caused CSS `text-overflow: ellipsis`. Solution: custom CSS wrapping overrides + spacious 2-row preset layout + `automargin=True` on Plotly axes.
 
 ---
 
-## Level 3 — Code Walkthrough: Module by Module
+## Level 4 — Advanced: Formulas, Benchmarks & Trade-offs
 
-### 3.1 In-Memory Resume Parsing (`extractors.py`)
-`extract_resume_text(filename, content)` inspects the file suffix:
-- **`.pdf`**: Opens `fitz.open(stream=content, filetype="pdf")` directly from bytes (never saved to disk). If `page_count > 0` and extracted text is empty, it raises a clear `ValueError` explaining that scanned/image PDFs require OCR.
-- **`.docx`**: Opens `Document(BytesIO(content))` and extracts both paragraphs and table cells (many resumes use two-column Word tables!).
-- **`.txt`**: Decodes UTF-8, falling back to Latin-1 if needed.
+### 4.1 Mathematical Formulas
+For requirements $i = 1 \dots n$ with importance weights $w_i \in \{2.0, 1.0\}$, match values $m_i \in \{1.0, 0.5, 0.0\}$, similarity signals $\sigma_i \in [0, 1]$, threshold $\tau = 0.48$, and semantic weight $\alpha \in [0.0, 0.5]$ (default $0.25$):
 
-Try it with the included real PDF resume at [`examples/playlikeboy_resume.pdf`](../examples/playlikeboy_resume.pdf) (fetched from [playlikeboy.github.io/resume](https://playlikeboy.github.io/resume)):
-- It extracts ~3,524 characters and detects 21 canonical skills (`Python`, `TypeScript`, `Go`, `FastAPI`, `React`, `Next.js`, `PostgreSQL`, `Redis`, `Docker`, `CI/CD`, etc.).
+$$\text{Coverage} = 100 \times \frac{\sum_{i=1}^n w_i \cdot m_i}{\sum_{i=1}^n w_i}, \qquad \text{Semantic} = 100 \times \frac{\sum_{i=1}^n w_i \cdot \sigma_i}{\sum_{i=1}^n w_i}$$
 
-### 3.2 Curated Taxonomy & Regex Guards (`taxonomy.py` & `skill_extraction.py`)
-Every entry in `SKILLS` has a `category` and `aliases`, plus optional safety guards:
-- **Boundary-aware matching (`_pattern_for`)**:
-  ```python
-  rf"(?<![A-Za-z0-9]){escaped}(?![A-Za-z0-9]){negative_after}"
-  ```
-  Why not Python's `\b`? Because skills like `C++` end with `+`, which is not a word character (`\w`), so `\b` fails on `C++`! Negative lookarounds `(?<![A-Za-z0-9])` and `(?![A-Za-z0-9])` work cleanly for both `TS` (won't match inside `"requirements"`) and `C++`.
-- **Case sensitivity**: `"Go"` has `"case_sensitive_terms": ["Go"]` so `"go to the next round"` is ignored while `"microservices in Go"` matches.
-- **Negative lookahead**: `"express"` in `Express.js` excludes following words like `interest`, `concern`, `thoughts`, `gratitude`, `lane`, `delivery`.
-- **Negation filtering (`_is_negated`)**: Checks the 55 characters before a match against `NEGATION_PATTERN` (`"no experience with"`, `"never used"`, `"not familiar with"`, etc.). Enabled (`ignore_negated=True`) for resumes, disabled (`ignore_negated=False`) for job descriptions.
-- **Evidence snippet (`_evidence_for`)**: Extracts the containing line/sentence (up to ~220 chars) and counts total `occurrences` across aliases.
+$$\text{Overall} = (1 - \alpha)\cdot\text{Coverage} + \alpha\cdot\text{Semantic}$$
 
-### 3.3 Required vs Preferred Parsing (`requirements.py`)
-`extract_job_requirements(job_description)` combines three signals in priority order:
-1. **Inline after-text** (within 60 chars to sentence end): e.g., `"React is nice to have"` or `"Docker (preferred)"` → `preferred`.
-2. **Local before-context** (last 250 chars): checks nearest `PREFERRED_MARKERS` vs `REQUIRED_MARKERS`.
-3. **Line-level section headings** (`_build_line_sections`): tracks headings like `Required qualifications:` (`required`, weight `2.0`) vs `Preferred qualifications:` (`preferred`, weight `1.0`). Tracking line offsets ensures long multi-bullet preferred sections don't accidentally revert to required!
+### 4.2 Synthetic Benchmark (`B0` vs `B1` vs `H1`)
+Evaluated on [`examples/evaluation_dataset.jsonl`](../examples/evaluation_dataset.jsonl) (6 internship role families, 41 labeled requirements):
 
-### 3.4 Semantic Similarity & Hybrid Matching (`similarity.py` & `analysis.py`)
-For each job requirement `r`:
-- If found directly in `resume_skills`:
-  - `status = "strong"`, `match_value = 1.0`, `similarity = 1.0`, `evidence = snippet`
-- Otherwise, `semantic_similarity(skill, resume_text, resume_skill_names)` runs:
-  - **Optional ML mode (`USE_SENTENCE_TRANSFORMERS=true`):** Encodes `[skill, *resume_sentences]` with `all-MiniLM-L6-v2` and takes max cosine similarity across resume fragments (clamped to `[0, 1]`).
-  - **Default fallback mode (`rule-based-fallback`):** Checks `RELATED_SKILLS.get(skill)` against detected `resume_skills` (returns `0.55` if a related skill is present, e.g., `FastAPI` detected when JD asks for `REST APIs`), otherwise computes token overlap `min(1.0, overlap * 0.7)`.
-- If `raw_similarity >= SEMANTIC_PARTIAL_THRESHOLD` (default `0.48`):
-  - `status = "partial"`, `match_value = 0.5`
-- Else:
-  - `status = "missing"`, `match_value = 0.0`
+| System | Description | Skill F1 | Match Macro-F1 | Accuracy | Median Latency |
+|---|---|---:|---:|---:|---:|
+| **B0** | Exact canonical names only | `1.000` | `0.325` | `46.3%` | `~0.4 ms` |
+| **B1** | Taxonomy + aliases + 2:1 weights (no partial) | `1.000` | `0.467` | `70.7%` | `~1.4 ms` |
+| **H1** | Full hybrid (`rule-based-fallback`, $\tau=0.48$) | `1.000` | `0.918` | `95.1%` | `~1.5 ms` |
+
+- **Why did B1 beat B0?** Alias normalization recovered all 9 strong matches written as `"JS"`, `"TS"`, `"ReactJS"`, or `"postgres"`.
+- **Why did H1 beat B1?** `RELATED_SKILLS` detected 11 of 12 partial matches (`σᵢ = 0.55 ≥ 0.48`).
+- **Known Error Analysis (Section 4.8 of Report):**
+  1. `syn-002` (`SQLite` → partial for `PostgreSQL`): reflects a taxonomy policy choice.
+  2. `syn-005` (`"js"` matching inside `"Node.js"`): `.` is not in `[A-Za-z0-9]`, documented for future boundary tightening.
 
 ---
 
-## Level 4 — Advanced: Scoring Math, Roadmaps & Evaluation
+## Level 5 — How to Run Everything in Detail + Viva Prep
 
-### 4.1 Scoring Equations
-Given requirements $i \in \{1, \dots, n\}$ with weight $w_i \in \{2.0, 1.0\}$, match value $m_i \in \{1.0, 0.5, 0.0\}$, similarity $s_i \in [0, 1]$, and user-selected semantic weight $\alpha \in [0.0, 0.5]$ (default $\alpha = 0.25$):
-
-$$\text{Coverage} = 100 \times \frac{\sum_{i=1}^n w_i \cdot m_i}{\sum_{i=1}^n w_i}$$
-
-$$\text{Semantic} = 100 \times \frac{\sum_{i=1}^n w_i \cdot s_i}{\sum_{i=1}^n w_i}$$
-
-$$\text{Overall} = (1 - \alpha) \cdot \text{Coverage} + \alpha \cdot \text{Semantic}$$
-
-All intermediate calculations use unrounded floats; rounding to 2 decimal places happens only at output time (`AnalysisResult`).
-
-### 4.2 Score Bands & Category Breakdown
-- `>= 80`: **Strong alignment**
-- `>= 60`: **Moderate alignment**
-- `>= 40`: **Developing alignment**
-- `< 40`: **Early-stage gap**
-
-`category_breakdown` groups requirements by domain (`Backend`, `Frontend`, `AI/ML`, etc.) and computes per-domain weighted coverage. `extra_resume_skills` lists skills demonstrated in the resume that weren't requested in the JD.
-
-### 4.3 Prioritized Learning Roadmap (`roadmap.py`)
-Gaps are sorted by **missing required (`w=2.0`) → missing preferred (`w=1.0`) → partial required → partial preferred**, capped at 12 steps, and paired with concrete learning tasks and portfolio project ideas from `RESOURCE_MAP` (with structured fallback templates for any skill).
-
-### 4.4 Experimental Evaluation: `B0` vs `B1` vs `H1`
-Run `cd backend && python scripts/evaluate.py` to compare all three systems on [`examples/evaluation_dataset.jsonl`](../examples/evaluation_dataset.jsonl):
-- **B0 (`exact-canonical`):** Matches canonical names only; cannot assign `partial` or resolve aliases.
-- **B1 (`taxonomy-aliases`):** Adds alias normalization and required/preferred importance classification, without partial semantic matching.
-- **H1 (`rule-based-fallback` / `sentence-transformers`):** Full hybrid pipeline with partial-match detection.
-
-Observed results on the 6-pair synthetic starter benchmark:
-
-| System | Mode | Skill F1 | Match Macro-F1 | Median Latency |
-|---|---|---:|---:|---:|
-| B0 | `exact-canonical` | `1.000` | `0.325` | `~0.4 ms` |
-| B1 | `taxonomy-aliases` | `1.000` | `0.467` | `~1.5 ms` |
-| H1 | `rule-based-fallback` | `1.000` | `0.918` | `~1.6 ms` |
-
-> **Research honesty note:** This 6-pair dataset is a synthetic starter benchmark. Real-world validation requires 30–50 human-annotated resume–JD pairs following [`docs/EXPERIMENTAL_PROTOCOL.md`](EXPERIMENTAL_PROTOCOL.md).
-
----
-
-## Level 5 — Engineering & Viva Prep
-
-### 5.1 Streamlit Architecture & State Pitfalls Solved
-In [`streamlit_app.py`](../streamlit_app.py):
-- **In-process execution:** Imports `backend/app/services/` directly so it deploys on **Streamlit Community Cloud** as a single Python process without needing a separate FastAPI server.
-- **Dynamic compare-role keys:** Each target role in `Compare Multiple Roles` has a monotonic `id` (`cmp_title_{job_id}`, `cmp_jd_{job_id}`) so deleting role #2 never causes Streamlit widget-state collisions.
-- **HTML escaping:** All user-supplied resume quotes and job titles pass through `html.escape(...)` before rendering inside styled HTML cards.
-- **Automated UI tests:** [`backend/tests/test_streamlit_app.py`](../backend/tests/test_streamlit_app.py) uses `streamlit.testing.v1.AppTest` to click buttons, switch modes, load the sample PDF, and assert zero exceptions.
-
-### 5.2 Common Viva / Presentation Questions & Answers
-1. **Why not use an LLM for everything?**
-   - LLMs are non-deterministic, slow/costly, and can hallucinate proficiency. Here, every strong match is deterministic and backed by an exact quote from the resume, while semantic similarity is bounded (`α ≤ 0.5`) and clearly labeled.
-2. **Why `0.75 * Coverage + 0.25 * Semantic` as default?**
-   - Coverage of verified skills should dominate the score (`75%`), while semantic alignment (`25%`) rewards adjacent tooling (e.g., `Flask` vs `REST APIs`) without overriding missing core skills. Users can also inspect `α = 0%` (pure baseline) via the sidebar slider.
-3. **Why did you choose Streamlit instead of React?**
-   - Unifying the UI and NLP engine in Python eliminates cross-origin (CORS) setup, enables full in-memory PDF/DOCX parsing directly on Streamlit Community Cloud, and simplifies maintenance for a data/NLP project.
-4. **How do you prevent false positives on short skill names like `Go`, `TS`, or `Express`?**
-   - Boundary lookarounds (`(?<![A-Za-z0-9])`), case sensitivity (`Go`), excluded following words (`express interest`), and a 55-character negation window before matches.
-
-### 5.3 Commands Cheat Sheet
+### 5.1 Step-by-Step Local Setup & Run
 ```bash
-# Run the Streamlit app locally
-.venv/bin/python -m streamlit run streamlit_app.py
+# 1. Clone and enter repo
+git clone https://github.com/playlikeboy/resume-job-matching-skill-gap-analyzer.git
+cd resume-job-matching-skill-gap-analyzer
+
+# 2. Create Python 3.11+ virtual environment and install dependencies
+python3 -m venv .venv
+source .venv/bin/activate              # Windows PowerShell: .venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+
+# 3. Launch the Streamlit app
+streamlit run streamlit_app.py
+```
+Open **`http://localhost:8501`** (or use the hosted app at **[https://resume-job-matching-skill-gap-analyzer.streamlit.app/](https://resume-job-matching-skill-gap-analyzer.streamlit.app/)**).
+
+### 5.2 Run Tests, Benchmark & Optional Modes
+```bash
+# Install backend + FastAPI test dependencies (if running API tests too)
+pip install -r backend/requirements.txt
 
 # Run all 22 automated tests (matching, evaluation, FastAPI, Streamlit AppTest)
-cd backend && ../.venv/bin/python -m pytest -v
+cd backend && pytest -v
 
-# Run the B0 vs B1 vs H1 benchmark
-cd backend && ../.venv/bin/python scripts/evaluate.py
+# Run B0 vs B1 vs H1 evaluation table
+python scripts/evaluate.py
 
-# Optional: run the FastAPI REST server separately
-cd backend && ../.venv/bin/python -m uvicorn app.main:app --reload --port 8000
+# Optional: run FastAPI REST server separately on port 8000
+uvicorn app.main:app --reload --port 8000
+
+# Optional: enable Sentence Transformers (all-MiniLM-L6-v2)
+pip install -r backend/requirements-ml.txt
+USE_SENTENCE_TRANSFORMERS=true streamlit run ../streamlit_app.py
 ```
+
+### 5.3 Top Questions Examiners Ask (See [`docs/PRESENTATION_SCRIPT.md`](PRESENTATION_SCRIPT.md) for full script!)
+1. **Why not just use GPT/LLMs?** → Non-deterministic, costly, opaque, and prone to inventing proficiency. `matchwise.` is deterministic, ~1.5 ms, and quotes exact resume evidence.
+2. **How do you prevent false positives on `"Go"`, `"TS"`, or `"No experience with Kubernetes"`?** → Case sensitivity on `"Go"`, excluded following words on `"express"`, boundary lookarounds `(?<![A-Za-z0-9])`, and a 55-char `NEGATION_PATTERN` window.
+3. **Why replace React with Streamlit?** → Unified Python stack eliminates CORS/dual-hosting, enables native PDF/DOCX parsing on Streamlit Community Cloud, and supports interactive Plotly visualizations.
+4. **What are the honest limitations?** → 54-skill entry-level scope, selectable-text-only PDFs (no OCR yet), and synthetic starter evaluation awaiting 30–50 human-annotated pairs.

@@ -22,27 +22,25 @@ def test_streamlit_single_role_analysis_runs():
     assert at.session_state["analysis_result"].requirements_found > 0
 
 
-def test_streamlit_shaswat_pdf_sample_and_fullstack_preset():
+def test_streamlit_loads_devops_and_all_sample_pdfs():
     pytest.importorskip("fitz")
-    at = AppTest.from_file(APP_PATH, default_timeout=15)
+    at = AppTest.from_file(APP_PATH, default_timeout=20)
     at.run()
     assert not at.exception
 
-    pdf_btn = next(btn for btn in at.button if btn.key == "btn_sample_shaswat_pdf")
-    pdf_btn.click().run()
+    sample_select = next(sb for sb in at.selectbox if sb.key == "sample_resume_choice")
+    sample_select.set_value("DevOps & Cloud Engineer — Shaswat Raj (PDF)").run()
+    load_btn = next(btn for btn in at.button if btn.key == "btn_load_sample")
+    load_btn.click().run()
     assert not at.exception
     assert at.session_state["resume_load_error"] == ""
     assert "Shaswat Raj" in at.session_state["resume_text"]
-
-    fs_btn = next(btn for btn in at.button if btn.key == "preset_fullstack")
-    fs_btn.click().run()
-    assert not at.exception
 
     analyze_btn = next(btn for btn in at.button if btn.key == "btn_analyze")
     analyze_btn.click().run()
     assert not at.exception
     assert at.session_state["analysis_result"] is not None
-    assert at.session_state["analysis_result"].overall_score > 70
+    assert at.session_state["analysis_result"].overall_score > 50
 
 
 def test_streamlit_compare_roles_runs():

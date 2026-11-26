@@ -22,20 +22,25 @@ from app.services.extractors import extract_resume_text  # noqa: E402
 from app.services.taxonomy import SKILLS  # noqa: E402
 from scripts.evaluate import evaluate  # noqa: E402
 
+RESUMES_DIR = REPO_ROOT / "examples" / "resumes"
 SAMPLE_PDF_PATH = REPO_ROOT / "examples" / "playlikeboy_resume.pdf"
 PPT_PATH = REPO_ROOT / "docs" / "Matchwise_5th_Sem_Presentation.pptx"
 REPORT_PDF_PATH = REPO_ROOT / "docs" / "Minor_Project_Report_2.pdf"
+
 PORTFOLIO_URL = "https://playlikeboy.github.io/"
 RESUME_PAGE_URL = "https://playlikeboy.github.io/resume"
 LIVE_APP_URL = "https://resume-job-matching-skill-gap-analyzer.streamlit.app/"
 REPO_URL = "https://github.com/playlikeboy/resume-job-matching-skill-gap-analyzer"
 CANVA_PPT_URL = "https://canva.link/b49q19khynjv1j9"
+CANVA_REPORT_URL = "https://canva.link/5n32fpxtsql4sbn"
 PPT_GITHUB_URL = f"{REPO_URL}/blob/main/docs/Matchwise_5th_Sem_Presentation.pptx"
 PPT_VIEWER_URL = (
     "https://view.officeapps.live.com/op/view.aspx?src="
     "https%3A%2F%2Fraw.githubusercontent.com%2Fplaylikeboy%2Fresume-job-matching-skill-gap-analyzer"
     "%2Fmain%2Fdocs%2FMatchwise_5th_Sem_Presentation.pptx"
 )
+GUIDE_URL = f"{REPO_URL}/blob/main/docs/PROJECT_GUIDE.md"
+SCRIPT_URL = f"{REPO_URL}/blob/main/docs/PRESENTATION_SCRIPT.md"
 
 SAMPLE_RESUME = """Alex Example
 Computer Science student
@@ -46,6 +51,57 @@ Projects
 - Used PostgreSQL and SQL for structured data storage.
 - Worked with Git, Docker and Linux during team projects.
 - Explored NLP, Machine Learning and sentence embeddings in an academic prototype."""
+
+SAMPLE_RESUMES: dict[str, dict[str, str]] = {
+    "General Resume — Shaswat Raj (PDF)": {
+        "kind": "pdf",
+        "file": str(RESUMES_DIR / "resume.pdf"),
+        "fallback_file": str(SAMPLE_PDF_PATH),
+        "url": "https://playlikeboy.github.io/resume",
+        "preset": "swe",
+    },
+    "Software Development Engineer (SDE) — Shaswat Raj (PDF)": {
+        "kind": "pdf",
+        "file": str(RESUMES_DIR / "resume-sde.pdf"),
+        "url": "https://playlikeboy.github.io/resume/sde",
+        "preset": "swe",
+    },
+    "Full-Stack Engineer — Shaswat Raj (PDF)": {
+        "kind": "pdf",
+        "file": str(RESUMES_DIR / "resume-fullstack.pdf"),
+        "url": "https://playlikeboy.github.io/resume/fullstack",
+        "preset": "fullstack",
+    },
+    "DevOps & Cloud Engineer — Shaswat Raj (PDF)": {
+        "kind": "pdf",
+        "file": str(RESUMES_DIR / "resume-devops.pdf"),
+        "url": "https://playlikeboy.github.io/resume/devops",
+        "preset": "devops",
+    },
+    "AI / ML Engineer — Shaswat Raj (PDF)": {
+        "kind": "pdf",
+        "file": str(RESUMES_DIR / "resume-ai.pdf"),
+        "url": "https://playlikeboy.github.io/resume/ai",
+        "preset": "ml",
+    },
+    "Forward Deployed Engineer (FDE) — Shaswat Raj (PDF)": {
+        "kind": "pdf",
+        "file": str(RESUMES_DIR / "resume-fde.pdf"),
+        "url": "https://playlikeboy.github.io/resume/fde",
+        "preset": "fde",
+    },
+    "Founding Engineer — Shaswat Raj (PDF)": {
+        "kind": "pdf",
+        "file": str(RESUMES_DIR / "resume-founding.pdf"),
+        "url": "https://playlikeboy.github.io/resume/founding",
+        "preset": "fullstack",
+    },
+    "Alex Example — Academic Prototype (Text)": {
+        "kind": "text",
+        "url": REPO_URL,
+        "preset": "swe",
+    },
+}
 
 ROLE_PRESETS: dict[str, dict[str, str]] = {
     "swe": {
@@ -76,32 +132,6 @@ Preferred qualifications
 - Go or Python backend scripting.
 - Tailwind CSS and Linux production debugging.""",
     },
-    "data": {
-        "label": "Data Analyst",
-        "job_description": """Data Analyst Intern
-
-Required qualifications
-- Strong SQL and Python skills for querying and cleaning data.
-- Experience with pandas, NumPy, and Data Analysis in Jupyter.
-- Data Visualization using matplotlib or plotly.
-
-Preferred qualifications
-- Statistics and hypothesis testing.
-- PostgreSQL or MySQL experience.""",
-    },
-    "ml": {
-        "label": "ML / NLP",
-        "job_description": """Machine Learning & NLP Intern
-
-Required qualifications
-- Python programming and scikit-learn or PyTorch experience.
-- Foundations in Machine Learning, Deep Learning, and NLP.
-- Git and Linux workflow familiarity.
-
-Preferred qualifications
-- Sentence Transformers or spaCy experience.
-- Docker and FastAPI deployment basics.""",
-    },
     "devops": {
         "label": "DevOps / Cloud",
         "job_description": """DevOps & Cloud Engineering Intern
@@ -115,6 +145,45 @@ Preferred qualifications
 - Kubernetes orchestration.
 - AWS, Google Cloud (GCP), or Azure familiarity.""",
     },
+    "ml": {
+        "label": "AI / ML",
+        "job_description": """Machine Learning & NLP Intern
+
+Required qualifications
+- Python programming and scikit-learn or PyTorch experience.
+- Foundations in Machine Learning, Deep Learning, and NLP.
+- Git and Linux workflow familiarity.
+
+Preferred qualifications
+- Sentence Transformers or spaCy experience.
+- Docker and FastAPI deployment basics.""",
+    },
+    "fde": {
+        "label": "FDE / Founding",
+        "job_description": """Forward Deployed / Founding Software Engineer
+
+Required qualifications
+- Full-stack product engineering with TypeScript, React, Next.js, and Node.js.
+- API and data layer ownership with Python, FastAPI, PostgreSQL, and Redis.
+- Docker, Git, CI/CD, and Linux deployment ownership.
+
+Preferred qualifications
+- Go or C++ systems programming.
+- NLP or AI workflow integration.""",
+    },
+    "data": {
+        "label": "Data Analyst",
+        "job_description": """Data Analyst Intern
+
+Required qualifications
+- Strong SQL and Python skills for querying and cleaning data.
+- Experience with pandas, NumPy, and Data Analysis in Jupyter.
+- Data Visualization using matplotlib or plotly.
+
+Preferred qualifications
+- Statistics and hypothesis testing.
+- PostgreSQL or MySQL experience.""",
+    },
 }
 
 DEFAULT_COMPARE_JOBS: list[dict[str, object]] = [
@@ -126,35 +195,39 @@ DEFAULT_COMPARE_JOBS: list[dict[str, object]] = [
 CUSTOM_CSS = """
 <style>
 .mw-hero {
-    padding: 0.35rem 0 1.05rem 0;
-    border-bottom: 1px solid rgba(142, 160, 181, 0.18);
-    margin-bottom: 1rem;
+    background: linear-gradient(135deg, rgba(20, 34, 53, 0.92), rgba(13, 23, 36, 0.98));
+    border: 1px solid #263950;
+    border-radius: 16px;
+    padding: 1.2rem 1.35rem;
+    margin-bottom: 0.95rem;
 }
 .mw-brand {
-    font-size: 1.95rem;
+    font-size: 2rem;
     font-weight: 800;
     letter-spacing: -0.04em;
     color: #edf3fa;
     margin: 0;
+    line-height: 1.15;
 }
 .mw-brand span {
     color: #73d9c3;
 }
 .mw-sub {
-    color: #9cb0c5;
+    color: #a9bdd1;
     font-size: 0.96rem;
-    margin-top: 0.35rem;
+    margin-top: 0.4rem;
+    line-height: 1.45;
 }
 .mw-pill {
     display: inline-block;
     padding: 0.22rem 0.65rem;
     border-radius: 999px;
-    font-size: 0.78rem;
+    font-size: 0.76rem;
     font-weight: 600;
     border: 1px solid #2b485b;
     background: #142235;
     color: #b1f2df;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.45rem;
 }
 .mw-card {
     background: #142235;
@@ -162,6 +235,10 @@ CUSTOM_CSS = """
     border-radius: 12px;
     padding: 0.95rem 1.05rem;
     margin-bottom: 0.75rem;
+    transition: border-color 0.15s ease;
+}
+.mw-card:hover {
+    border-color: #3b6f77;
 }
 .mw-card-title {
     display: flex;
@@ -174,7 +251,7 @@ CUSTOM_CSS = """
     font-size: 0.72rem;
     font-weight: 700;
     text-transform: uppercase;
-    padding: 0.15rem 0.5rem;
+    padding: 0.15rem 0.55rem;
     border-radius: 999px;
     letter-spacing: 0.04em;
 }
@@ -210,6 +287,17 @@ CUSTOM_CSS = """
     font-weight: 800;
     color: #73d9c3;
 }
+.mw-footer {
+    margin-top: 2rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid rgba(142, 160, 181, 0.18);
+    color: #8ea0b5;
+    font-size: 0.82rem;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
 /* Prevent Streamlit from truncating button, link, download, and metric labels with '...' */
 [data-testid="stButton"] button,
 [data-testid="stDownloadButton"] button,
@@ -242,8 +330,9 @@ CUSTOM_CSS = """
 def _init_state() -> None:
     defaults: dict[str, object] = {
         "mode": "Single Role Analysis",
+        "sample_resume_choice": "General Resume — Shaswat Raj (PDF)",
         "resume_text": SAMPLE_RESUME,
-        "resume_filename": "",
+        "resume_filename": "Alex Example (Default Text)",
         "resume_load_error": "",
         "last_uploaded_key": "",
         "job_description": ROLE_PRESETS["swe"]["job_description"],
@@ -263,24 +352,41 @@ def _set_semantic_weight(weight: float) -> None:
     st.session_state["semantic_weight"] = weight
 
 
-def _load_sample_resume() -> None:
-    st.session_state["resume_text"] = SAMPLE_RESUME
-    st.session_state["resume_filename"] = "sample_resume (Alex Example)"
-    st.session_state["resume_load_error"] = ""
+def _selected_sample_path(choice: str) -> Path | None:
+    meta = SAMPLE_RESUMES.get(choice)
+    if not meta or meta.get("kind") != "pdf":
+        return None
+    primary = Path(meta["file"])
+    if primary.exists():
+        return primary
+    fallback = meta.get("fallback_file")
+    if fallback and Path(fallback).exists():
+        return Path(fallback)
+    return None
 
 
-def _load_shaswat_pdf_resume() -> None:
+def _load_selected_sample(sync_preset: bool = False) -> None:
+    choice = str(st.session_state["sample_resume_choice"])
+    meta = SAMPLE_RESUMES[choice]
     st.session_state["resume_load_error"] = ""
-    if not SAMPLE_PDF_PATH.exists():
-        st.session_state["resume_load_error"] = "Sample PDF file examples/playlikeboy_resume.pdf was not found."
-        return
-    try:
-        extracted = extract_resume_text(SAMPLE_PDF_PATH.name, SAMPLE_PDF_PATH.read_bytes())
-    except ValueError as exc:
-        st.session_state["resume_load_error"] = str(exc)
-        return
-    st.session_state["resume_text"] = extracted
-    st.session_state["resume_filename"] = "playlikeboy_resume.pdf (from playlikeboy.github.io/resume)"
+    if meta["kind"] == "text":
+        st.session_state["resume_text"] = SAMPLE_RESUME
+        st.session_state["resume_filename"] = "Alex Example (Synthetic Sample)"
+    else:
+        pdf_path = _selected_sample_path(choice)
+        if pdf_path is None:
+            st.session_state["resume_load_error"] = f"Sample PDF not found for {choice}."
+            return
+        try:
+            extracted = extract_resume_text(pdf_path.name, pdf_path.read_bytes())
+        except ValueError as exc:
+            st.session_state["resume_load_error"] = str(exc)
+            return
+        st.session_state["resume_text"] = extracted
+        st.session_state["resume_filename"] = f"{pdf_path.name} ({meta['url']})"
+
+    if sync_preset and meta.get("preset") in ROLE_PRESETS:
+        st.session_state["job_description"] = ROLE_PRESETS[meta["preset"]]["job_description"]
 
 
 def _clear_resume() -> None:
@@ -507,13 +613,43 @@ def _render_skill_cards(title: str, items: list[SkillMatch], tone_class: str, em
         st.markdown(card_html, unsafe_allow_html=True)
 
 
-def _render_resume_input() -> None:
+def _render_resume_input(sync_preset: bool = False) -> None:
     settings = get_settings()
     max_mb = max(1, settings.max_upload_bytes // (1024 * 1024))
     st.subheader("01 / Resume")
 
+    st.selectbox(
+        "Quick-load sample resume (7 real PDFs from playlikeboy.github.io + Alex Example)",
+        list(SAMPLE_RESUMES.keys()),
+        key="sample_resume_choice",
+    )
+    choice = str(st.session_state["sample_resume_choice"])
+    pdf_path = _selected_sample_path(choice)
+
+    s_load, s_dl, s_clr = st.columns(3)
+    s_load.button(
+        "Load Sample",
+        on_click=_load_selected_sample,
+        args=(sync_preset,),
+        key="btn_load_sample",
+        use_container_width=True,
+        help="Loads and extracts text from the selected sample resume",
+    )
+    if pdf_path is not None:
+        s_dl.download_button(
+            "Download PDF",
+            data=pdf_path.read_bytes(),
+            file_name=pdf_path.name,
+            mime="application/pdf",
+            key="btn_download_sample_pdf",
+            use_container_width=True,
+        )
+    else:
+        s_dl.link_button("Portfolio", PORTFOLIO_URL, use_container_width=True)
+    s_clr.button("Clear Text", on_click=_clear_resume, key="btn_clear_resume", use_container_width=True)
+
     uploaded = st.file_uploader(
-        f"Upload resume (PDF, DOCX, or TXT · up to {max_mb} MB)",
+        f"Or upload your own resume (PDF, DOCX, or TXT · up to {max_mb} MB)",
         type=["pdf", "docx", "txt"],
         key="resume_uploader",
     )
@@ -540,46 +676,17 @@ def _render_resume_input() -> None:
         st.error(st.session_state["resume_load_error"])
 
     if st.session_state["resume_filename"]:
-        st.caption(f"Loaded from: `{st.session_state['resume_filename']}`")
+        st.caption(f"Active resume: `{st.session_state['resume_filename']}`")
 
     st.text_area(
-        "Or paste / edit resume text",
+        "Resume text (editable)",
         height=230,
         key="resume_text",
         placeholder="Paste resume text here…",
     )
     words = len(st.session_state["resume_text"].split())
-    st.caption(f"{words} words")
-
-    c_alex, c_pdf = st.columns(2)
-    c_alex.button(
-        "Load Alex Sample",
-        on_click=_load_sample_resume,
-        key="btn_sample_resume",
-        use_container_width=True,
-    )
-    c_pdf.button(
-        "Load Shaswat PDF",
-        on_click=_load_shaswat_pdf_resume,
-        key="btn_sample_shaswat_pdf",
-        use_container_width=True,
-        help="Parses examples/playlikeboy_resume.pdf fetched from playlikeboy.github.io/resume",
-    )
-
-    dl_col, clr_col = st.columns(2)
-    if SAMPLE_PDF_PATH.exists():
-        dl_col.download_button(
-            "Download Sample PDF",
-            data=SAMPLE_PDF_PATH.read_bytes(),
-            file_name="playlikeboy_resume.pdf",
-            mime="application/pdf",
-            key="btn_download_sample_pdf",
-            use_container_width=True,
-        )
-    else:
-        dl_col.link_button("Sample Resume Source", RESUME_PAGE_URL, use_container_width=True)
-    clr_col.button("Clear Resume", on_click=_clear_resume, key="btn_clear_resume", use_container_width=True)
-    st.caption(f"Sample PDF source: [playlikeboy.github.io/resume]({RESUME_PAGE_URL})")
+    sample_url = SAMPLE_RESUMES[choice]["url"]
+    st.caption(f"{words} words · Sample source: [{sample_url}]({sample_url})")
 
 
 def _render_single_analysis_results(analysis: AnalysisResult) -> None:
@@ -792,7 +899,7 @@ def main() -> None:
 
     with st.sidebar:
         st.markdown('<div class="mw-brand">matchwise<span>.</span></div>', unsafe_allow_html=True)
-        st.caption("Explainable career readiness · v0.2.0")
+        st.caption("5th Sem B.Tech CSE Project · BIT Mesra")
         st.markdown(f'<span class="mw-pill">Mode: {html.escape(semantic_mode)}</span>', unsafe_allow_html=True)
         st.divider()
 
@@ -816,19 +923,18 @@ def main() -> None:
             f"Partial threshold: `{settings.semantic_partial_threshold:.2f}`"
         )
         st.divider()
-        st.caption("In-memory only: uploaded resumes and pasted text are analyzed on demand and never persisted.")
-        st.markdown("### Project & PPT Links")
-        st.markdown(f"- [Open Canva Presentation]({CANVA_PPT_URL})")
-        st.markdown(f"- [Open PowerPoint in Browser]({PPT_VIEWER_URL})")
-        st.markdown(f"- [PPTX File on GitHub]({PPT_GITHUB_URL})")
-        st.markdown(f"- [Easy → Advanced Guide]({REPO_URL}/blob/main/docs/PROJECT_GUIDE.md)")
-        st.markdown(f"- [Live Streamlit App]({LIVE_APP_URL})")
-        st.markdown(f"- [Author Portfolio (playlikeboy.github.io)]({PORTFOLIO_URL})")
-        st.markdown(f"- [Sample Resume PDF Source]({RESUME_PAGE_URL})")
+        st.markdown("### Canva, Report & Docs")
+        st.markdown(f"- [Canva PPT (14 Slides)]({CANVA_PPT_URL})")
+        st.markdown(f"- [Canva Project Report]({CANVA_REPORT_URL})")
+        st.markdown(f"- [PowerPoint Web Viewer]({PPT_VIEWER_URL})")
+        st.markdown(f"- [Easy → Advanced Guide]({GUIDE_URL})")
+        st.markdown(f"- [PPT Presenter Script & Q&A]({SCRIPT_URL})")
+        st.markdown(f"- [Portfolio (playlikeboy.github.io)]({PORTFOLIO_URL})")
+        st.markdown(f"- [7 Resume PDFs Source]({RESUME_PAGE_URL}/devops)")
         st.markdown(f"- [GitHub Repository]({REPO_URL})")
         if PPT_PATH.exists():
             st.download_button(
-                "Download 5th-Sem PPT (.pptx)",
+                "Download PPT (.pptx)",
                 data=PPT_PATH.read_bytes(),
                 file_name="Matchwise_5th_Sem_Presentation.pptx",
                 mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
@@ -844,22 +950,24 @@ def main() -> None:
                 key="sidebar_download_report_pdf",
                 use_container_width=True,
             )
+        st.divider()
+        st.caption("In-memory only: uploaded resumes and pasted text are analyzed on demand and never persisted.")
 
     st.markdown(
         '<div class="mw-hero">'
-        '<div class="mw-pill">CAREER READINESS, WITH EVIDENCE</div>'
+        '<div class="mw-pill">CAREER READINESS, WITH EVIDENCE · BIT MESRA MINOR PROJECT</div>'
         '<div class="mw-brand">Know where you stand. <span>See what to build next.</span></div>'
         '<div class="mw-sub">'
-        'Compare your resume against one or more job descriptions with normalized skill matching, '
-        'evidence snippets, weighted coverage, and a prioritized learning roadmap.'
+        'Compare your resume (or test 7 real role-specific resume PDFs) against job descriptions with '
+        'normalized skill matching, quoted evidence, weighted coverage, and a prioritized learning roadmap.'
         '</div>'
         '</div>',
         unsafe_allow_html=True,
     )
 
     q1, q2, q3, q4, q5 = st.columns(5)
-    q1.link_button("Open Canva PPT", CANVA_PPT_URL, use_container_width=True)
-    q2.link_button("Open PowerPoint", PPT_VIEWER_URL, use_container_width=True)
+    q1.link_button("Canva PPT", CANVA_PPT_URL, use_container_width=True)
+    q2.link_button("Canva Report", CANVA_REPORT_URL, use_container_width=True)
     if REPORT_PDF_PATH.exists():
         q3.download_button(
             "Report PDF",
@@ -869,18 +977,9 @@ def main() -> None:
             key="hero_download_report_pdf",
             use_container_width=True,
         )
-    elif PPT_PATH.exists():
-        q3.download_button(
-            "Download PPTX",
-            data=PPT_PATH.read_bytes(),
-            file_name="Matchwise_5th_Sem_Presentation.pptx",
-            mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
-            key="hero_download_ppt",
-            use_container_width=True,
-        )
     else:
-        q3.link_button("PPT on GitHub", PPT_GITHUB_URL, use_container_width=True)
-    q4.link_button("Project Guide", f"{REPO_URL}/blob/main/docs/PROJECT_GUIDE.md", use_container_width=True)
+        q3.link_button("PowerPoint", PPT_VIEWER_URL, use_container_width=True)
+    q4.link_button("Learning Guide", GUIDE_URL, use_container_width=True)
     q5.link_button("playlikeboy.github.io", PORTFOLIO_URL, use_container_width=True)
 
     mode = st.radio(
@@ -894,7 +993,7 @@ def main() -> None:
     if mode == "Single Role Analysis":
         col_resume, col_jd = st.columns(2, gap="large")
         with col_resume:
-            _render_resume_input()
+            _render_resume_input(sync_preset=True)
 
         with col_jd:
             st.subheader("02 / Target Job Description")
@@ -915,7 +1014,7 @@ def main() -> None:
             )
             st.text_area(
                 "Job description",
-                height=280,
+                height=310,
                 key="job_description",
                 placeholder="Paste the target job description here…",
             )
@@ -949,7 +1048,7 @@ def main() -> None:
     elif mode == "Compare Multiple Roles":
         col_resume_cmp, col_roles_cmp = st.columns([1, 1.35], gap="large")
         with col_resume_cmp:
-            _render_resume_input()
+            _render_resume_input(sync_preset=False)
 
         with col_roles_cmp:
             head_col, add_col = st.columns([3, 1])
@@ -1018,6 +1117,14 @@ def main() -> None:
 
     else:
         _render_taxonomy_and_benchmark()
+
+    st.markdown(
+        '<div class="mw-footer">'
+        '<span><strong>matchwise.</strong> v0.2.0 — Shaswat Raj (BTECH/10574/24) &amp; Satyam Hansda (BTECH/10616/24)</span>'
+        '<span>Guided by Dr. Sumit Srivastava · Dept. of CSE, BIT Mesra</span>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
 
 
 if __name__ == "__main__":
