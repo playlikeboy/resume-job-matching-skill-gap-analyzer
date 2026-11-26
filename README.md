@@ -43,7 +43,10 @@ flowchart LR
 - **Semantic experiment:** Sentence Transformers (`all-MiniLM-L6-v2`, optional) with rule-based fallback
 - **Testing & Evaluation:** `pytest` (including Streamlit `AppTest`) + reproducible comparison script ([`backend/scripts/evaluate.py`](backend/scripts/evaluate.py))
 
-See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for component details and [`docs/PROJECT_PLAN.md`](docs/PROJECT_PLAN.md) for the semester roadmap.
+See [`docs/PROJECT_GUIDE.md`](docs/PROJECT_GUIDE.md) for a complete **Easy → Advanced** walkthrough of the codebase, [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for component details, [`docs/PROJECT_PLAN.md`](docs/PROJECT_PLAN.md) for the semester roadmap, and [`docs/Matchwise_5th_Sem_Presentation.pptx`](docs/Matchwise_5th_Sem_Presentation.pptx) for the 5th-semester presentation deck.
+
+- **Author Portfolio:** [https://playlikeboy.github.io/](https://playlikeboy.github.io/)
+- **Sample Resume PDF:** [`examples/playlikeboy_resume.pdf`](examples/playlikeboy_resume.pdf) (sourced from [https://playlikeboy.github.io/resume](https://playlikeboy.github.io/resume))
 
 ## Quick start
 

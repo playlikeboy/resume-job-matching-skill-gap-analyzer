@@ -22,6 +22,10 @@ from app.services.extractors import extract_resume_text  # noqa: E402
 from app.services.taxonomy import SKILLS  # noqa: E402
 from scripts.evaluate import evaluate  # noqa: E402
 
+SAMPLE_PDF_PATH = REPO_ROOT / "examples" / "playlikeboy_resume.pdf"
+PORTFOLIO_URL = "https://playlikeboy.github.io/"
+RESUME_PAGE_URL = "https://playlikeboy.github.io/resume"
+
 SAMPLE_RESUME = """Alex Example
 Computer Science student
 
@@ -47,8 +51,22 @@ Preferred qualifications
 - React and TypeScript experience.
 - Exposure to NLP or Machine Learning.""",
     },
+    "fullstack": {
+        "label": "Full-Stack",
+        "job_description": """Full-Stack Software Engineer
+
+Required qualifications
+- Strong TypeScript, JavaScript, and React or Next.js experience.
+- Backend API development with Node.js, Express.js, or FastAPI.
+- PostgreSQL, Redis, and REST APIs design.
+- Git, Docker, and CI/CD (GitHub Actions) workflow experience.
+
+Preferred qualifications
+- Go or Python backend scripting.
+- Tailwind CSS and Linux production debugging.""",
+    },
     "data": {
-        "label": "Data Analyst Intern",
+        "label": "Data Analyst",
         "job_description": """Data Analyst Intern
 
 Required qualifications
@@ -61,7 +79,7 @@ Preferred qualifications
 - PostgreSQL or MySQL experience.""",
     },
     "ml": {
-        "label": "ML / NLP Intern",
+        "label": "ML / NLP",
         "job_description": """Machine Learning & NLP Intern
 
 Required qualifications
@@ -72,6 +90,19 @@ Required qualifications
 Preferred qualifications
 - Sentence Transformers or spaCy experience.
 - Docker and FastAPI deployment basics.""",
+    },
+    "devops": {
+        "label": "DevOps / Cloud",
+        "job_description": """DevOps & Cloud Engineering Intern
+
+Required qualifications
+- Linux administration, bash scripting, and Git workflows.
+- Docker containerization and CI/CD pipelines with GitHub Actions.
+- Python or Go automation tooling.
+
+Preferred qualifications
+- Kubernetes orchestration.
+- AWS, Google Cloud (GCP), or Azure familiarity.""",
     },
 }
 
@@ -177,6 +208,7 @@ def _init_state() -> None:
         "mode": "Single Role Analysis",
         "resume_text": SAMPLE_RESUME,
         "resume_filename": "",
+        "resume_load_error": "",
         "last_uploaded_key": "",
         "job_description": ROLE_PRESETS["swe"]["job_description"],
         "semantic_weight": 0.25,
@@ -197,12 +229,28 @@ def _set_semantic_weight(weight: float) -> None:
 
 def _load_sample_resume() -> None:
     st.session_state["resume_text"] = SAMPLE_RESUME
-    st.session_state["resume_filename"] = ""
+    st.session_state["resume_filename"] = "sample_resume (Alex Example)"
+    st.session_state["resume_load_error"] = ""
+
+
+def _load_shaswat_pdf_resume() -> None:
+    st.session_state["resume_load_error"] = ""
+    if not SAMPLE_PDF_PATH.exists():
+        st.session_state["resume_load_error"] = "Sample PDF file examples/playlikeboy_resume.pdf was not found."
+        return
+    try:
+        extracted = extract_resume_text(SAMPLE_PDF_PATH.name, SAMPLE_PDF_PATH.read_bytes())
+    except ValueError as exc:
+        st.session_state["resume_load_error"] = str(exc)
+        return
+    st.session_state["resume_text"] = extracted
+    st.session_state["resume_filename"] = "playlikeboy_resume.pdf (from playlikeboy.github.io/resume)"
 
 
 def _clear_resume() -> None:
     st.session_state["resume_text"] = ""
     st.session_state["resume_filename"] = ""
+    st.session_state["resume_load_error"] = ""
     st.session_state["analysis_result"] = None
     st.session_state["compare_result"] = None
 
@@ -446,24 +494,53 @@ def _render_resume_input() -> None:
                     else:
                         st.session_state["resume_text"] = extracted
                         st.session_state["resume_filename"] = uploaded.name
+                        st.session_state["resume_load_error"] = ""
                         st.session_state["last_uploaded_key"] = file_token
                 except ValueError as exc:
                     st.error(str(exc))
 
+    if st.session_state["resume_load_error"]:
+        st.error(st.session_state["resume_load_error"])
+
     if st.session_state["resume_filename"]:
-        st.caption(f"Loaded from file: `{st.session_state['resume_filename']}`")
+        st.caption(f"Loaded from: `{st.session_state['resume_filename']}`")
 
     st.text_area(
         "Or paste / edit resume text",
-        height=240,
+        height=230,
         key="resume_text",
         placeholder="Paste resume text here…",
     )
     words = len(st.session_state["resume_text"].split())
-    col_count, col_sample, col_clear = st.columns([2, 1, 1])
-    col_count.caption(f"{words} words")
-    col_sample.button("Load sample", on_click=_load_sample_resume, key="btn_sample_resume", use_container_width=True)
-    col_clear.button("Clear", on_click=_clear_resume, key="btn_clear_resume", use_container_width=True)
+    st.caption(f"{words} words")
+
+    c_alex, c_pdf, c_clear = st.columns([1.15, 1.35, 0.7])
+    c_alex.button(
+        "Sample: Alex (Text)",
+        on_click=_load_sample_resume,
+        key="btn_sample_resume",
+        use_container_width=True,
+    )
+    c_pdf.button(
+        "Sample: Shaswat PDF",
+        on_click=_load_shaswat_pdf_resume,
+        key="btn_sample_shaswat_pdf",
+        use_container_width=True,
+        help="Parses examples/playlikeboy_resume.pdf fetched from playlikeboy.github.io/resume",
+    )
+    c_clear.button("Clear", on_click=_clear_resume, key="btn_clear_resume", use_container_width=True)
+
+    if SAMPLE_PDF_PATH.exists():
+        dl_col, link_col = st.columns([1.2, 1.8])
+        dl_col.download_button(
+            "Download sample PDF",
+            data=SAMPLE_PDF_PATH.read_bytes(),
+            file_name="playlikeboy_resume.pdf",
+            mime="application/pdf",
+            key="btn_download_sample_pdf",
+            use_container_width=True,
+        )
+        link_col.caption(f"Source: [playlikeboy.github.io/resume]({RESUME_PAGE_URL})")
 
 
 def _render_single_analysis_results(analysis: AnalysisResult) -> None:
@@ -701,7 +778,10 @@ def main() -> None:
         )
         st.divider()
         st.caption("In-memory only: uploaded resumes and pasted text are analyzed on demand and never persisted.")
-        st.markdown("[GitHub Repository](https://github.com/playlikeboy/resume-job-matching-skill-gap-analyzer)")
+        st.markdown("### Links")
+        st.markdown(f"- [Author Portfolio (playlikeboy.github.io)]({PORTFOLIO_URL})")
+        st.markdown(f"- [Live Resume PDF Source]({RESUME_PAGE_URL})")
+        st.markdown("- [GitHub Repository](https://github.com/playlikeboy/resume-job-matching-skill-gap-analyzer)")
 
     st.markdown(
         '<div class="mw-hero">'
