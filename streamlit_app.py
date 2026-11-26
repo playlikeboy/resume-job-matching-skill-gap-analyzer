@@ -24,10 +24,12 @@ from scripts.evaluate import evaluate  # noqa: E402
 
 SAMPLE_PDF_PATH = REPO_ROOT / "examples" / "playlikeboy_resume.pdf"
 PPT_PATH = REPO_ROOT / "docs" / "Matchwise_5th_Sem_Presentation.pptx"
+REPORT_PDF_PATH = REPO_ROOT / "docs" / "Minor_Project_Report_2.pdf"
 PORTFOLIO_URL = "https://playlikeboy.github.io/"
 RESUME_PAGE_URL = "https://playlikeboy.github.io/resume"
 LIVE_APP_URL = "https://resume-job-matching-skill-gap-analyzer.streamlit.app/"
 REPO_URL = "https://github.com/playlikeboy/resume-job-matching-skill-gap-analyzer"
+CANVA_PPT_URL = "https://canva.link/b49q19khynjv1j9"
 PPT_GITHUB_URL = f"{REPO_URL}/blob/main/docs/Matchwise_5th_Sem_Presentation.pptx"
 PPT_VIEWER_URL = (
     "https://view.officeapps.live.com/op/view.aspx?src="
@@ -816,8 +818,9 @@ def main() -> None:
         st.divider()
         st.caption("In-memory only: uploaded resumes and pasted text are analyzed on demand and never persisted.")
         st.markdown("### Project & PPT Links")
-        st.markdown(f"- [Open 5th-Sem PPT in Browser]({PPT_VIEWER_URL})")
-        st.markdown(f"- [PPT File on GitHub]({PPT_GITHUB_URL})")
+        st.markdown(f"- [Open Canva Presentation]({CANVA_PPT_URL})")
+        st.markdown(f"- [Open PowerPoint in Browser]({PPT_VIEWER_URL})")
+        st.markdown(f"- [PPTX File on GitHub]({PPT_GITHUB_URL})")
         st.markdown(f"- [Easy → Advanced Guide]({REPO_URL}/blob/main/docs/PROJECT_GUIDE.md)")
         st.markdown(f"- [Live Streamlit App]({LIVE_APP_URL})")
         st.markdown(f"- [Author Portfolio (playlikeboy.github.io)]({PORTFOLIO_URL})")
@@ -830,6 +833,15 @@ def main() -> None:
                 file_name="Matchwise_5th_Sem_Presentation.pptx",
                 mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
                 key="sidebar_download_ppt",
+                use_container_width=True,
+            )
+        if REPORT_PDF_PATH.exists():
+            st.download_button(
+                "Download Report (.pdf)",
+                data=REPORT_PDF_PATH.read_bytes(),
+                file_name="Minor_Project_Report_2.pdf",
+                mime="application/pdf",
+                key="sidebar_download_report_pdf",
                 use_container_width=True,
             )
 
@@ -845,10 +857,20 @@ def main() -> None:
         unsafe_allow_html=True,
     )
 
-    q1, q2, q3, q4 = st.columns(4)
-    q1.link_button("Open 5th-Sem PPT", PPT_VIEWER_URL, use_container_width=True)
-    if PPT_PATH.exists():
-        q2.download_button(
+    q1, q2, q3, q4, q5 = st.columns(5)
+    q1.link_button("Open Canva PPT", CANVA_PPT_URL, use_container_width=True)
+    q2.link_button("Open PowerPoint", PPT_VIEWER_URL, use_container_width=True)
+    if REPORT_PDF_PATH.exists():
+        q3.download_button(
+            "Report PDF",
+            data=REPORT_PDF_PATH.read_bytes(),
+            file_name="Minor_Project_Report_2.pdf",
+            mime="application/pdf",
+            key="hero_download_report_pdf",
+            use_container_width=True,
+        )
+    elif PPT_PATH.exists():
+        q3.download_button(
             "Download PPTX",
             data=PPT_PATH.read_bytes(),
             file_name="Matchwise_5th_Sem_Presentation.pptx",
@@ -857,9 +879,9 @@ def main() -> None:
             use_container_width=True,
         )
     else:
-        q2.link_button("PPT on GitHub", PPT_GITHUB_URL, use_container_width=True)
-    q3.link_button("Project Guide", f"{REPO_URL}/blob/main/docs/PROJECT_GUIDE.md", use_container_width=True)
-    q4.link_button("playlikeboy.github.io", PORTFOLIO_URL, use_container_width=True)
+        q3.link_button("PPT on GitHub", PPT_GITHUB_URL, use_container_width=True)
+    q4.link_button("Project Guide", f"{REPO_URL}/blob/main/docs/PROJECT_GUIDE.md", use_container_width=True)
+    q5.link_button("playlikeboy.github.io", PORTFOLIO_URL, use_container_width=True)
 
     mode = st.radio(
         "Workspace",

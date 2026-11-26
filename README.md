@@ -14,7 +14,7 @@
 ![FastAPI](https://img.shields.io/badge/FastAPI-Optional%20API-009688?logo=fastapi&logoColor=white)
 ![Visitor Count](https://visitor-badge.laobi.icu/badge?page_id=playlikeboy.resume-job-matching-skill-gap-analyzer)
 
-[**Launch Live App**](https://resume-job-matching-skill-gap-analyzer.streamlit.app/) · [**Open 5th-Sem PPT**](https://view.officeapps.live.com/op/view.aspx?src=https%3A%2F%2Fraw.githubusercontent.com%2Fplaylikeboy%2Fresume-job-matching-skill-gap-analyzer%2Fmain%2Fdocs%2FMatchwise_5th_Sem_Presentation.pptx) · [**Read Easy → Advanced Guide**](docs/PROJECT_GUIDE.md) · [**Author Portfolio**](https://playlikeboy.github.io/)
+[**Launch Live App**](https://resume-job-matching-skill-gap-analyzer.streamlit.app/) · [**Open Canva PPT**](https://canva.link/b49q19khynjv1j9) · [**Open PowerPoint**](https://view.officeapps.live.com/op/view.aspx?src=https%3A%2F%2Fraw.githubusercontent.com%2Fplaylikeboy%2Fresume-job-matching-skill-gap-analyzer%2Fmain%2Fdocs%2FMatchwise_5th_Sem_Presentation.pptx) · [**Project Report PDF**](docs/Minor_Project_Report_2.pdf) · [**Easy → Advanced Guide**](docs/PROJECT_GUIDE.md) · [**Portfolio**](https://playlikeboy.github.io/)
 
 </div>
 
@@ -171,9 +171,12 @@ examples/
 ## Links & academic notes
 
 - **Live App:** [https://resume-job-matching-skill-gap-analyzer.streamlit.app/](https://resume-job-matching-skill-gap-analyzer.streamlit.app/)
+- **Canva Presentation (14 Slides):** [https://canva.link/b49q19khynjv1j9](https://canva.link/b49q19khynjv1j9)
 - **Author Portfolio:** [https://playlikeboy.github.io/](https://playlikeboy.github.io/)
 - **Sample Resume Source:** [https://playlikeboy.github.io/resume](https://playlikeboy.github.io/resume)
-- **5th-Sem Presentation:** [Open in Office Web Viewer](https://view.officeapps.live.com/op/view.aspx?src=https%3A%2F%2Fraw.githubusercontent.com%2Fplaylikeboy%2Fresume-job-matching-skill-gap-analyzer%2Fmain%2Fdocs%2FMatchwise_5th_Sem_Presentation.pptx) · [Download `.pptx`](docs/Matchwise_5th_Sem_Presentation.pptx)
+- **5th-Sem PowerPoint:** [Open in Office Web Viewer](https://view.officeapps.live.com/op/view.aspx?src=https%3A%2F%2Fraw.githubusercontent.com%2Fplaylikeboy%2Fresume-job-matching-skill-gap-analyzer%2Fmain%2Fdocs%2FMatchwise_5th_Sem_Presentation.pptx) · [Download `.pptx`](docs/Matchwise_5th_Sem_Presentation.pptx)
+- **Minor Project Report:** [Download PDF](docs/Minor_Project_Report_2.pdf) · [Download DOCX](docs/Minor_Project_Report_2.docx)
+- **Team & Guide:** Shaswat Raj (`BTECH/10574/24`) & Satyam Hansda (`BTECH/10616/24`), guided by **Dr. Sumit Srivastava** (Assistant Professor, Dept. of CSE, BIT Mesra)
 - **Academic Submission Templates:** Stored in [`docs/submission/`](docs/submission/) (BIT Mesra 5-chapter / 30-page report guide and 12–15 slide presentation guideline).
 
 ## Current limitations

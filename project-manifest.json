@@ -6,8 +6,21 @@
   "repository": "https://github.com/playlikeboy/resume-job-matching-skill-gap-analyzer",
   "author_portfolio": "https://playlikeboy.github.io/",
   "sample_resume_source": "https://playlikeboy.github.io/resume",
+  "canva_presentation": "https://canva.link/b49q19khynjv1j9",
   "presentation": "docs/Matchwise_5th_Sem_Presentation.pptx",
+  "report_docx": "docs/Minor_Project_Report_2.docx",
+  "report_pdf": "docs/Minor_Project_Report_2.pdf",
   "guide": "docs/PROJECT_GUIDE.md",
+  "team": [
+    {"name": "Shaswat Raj", "roll": "BTECH/10574/24"},
+    {"name": "Satyam Hansda", "roll": "BTECH/10616/24"}
+  ],
+  "guide_faculty": {
+    "name": "Dr. Sumit Srivastava",
+    "designation": "Assistant Professor",
+    "department": "Computer Science and Engineering",
+    "institution": "Birla Institute of Technology, Mesra"
+  },
   "stack": {
     "frontend": ["Streamlit", "Plotly"],
     "backend": ["Python 3.11", "FastAPI (optional)", "Pydantic", "PyMuPDF", "python-docx"],
