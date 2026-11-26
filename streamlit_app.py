@@ -208,6 +208,31 @@ CUSTOM_CSS = """
     font-weight: 800;
     color: #73d9c3;
 }
+/* Prevent Streamlit from truncating button, link, download, and metric labels with '...' */
+[data-testid="stButton"] button,
+[data-testid="stDownloadButton"] button,
+[data-testid="stLinkButton"] a {
+    white-space: normal !important;
+    word-break: break-word !important;
+    overflow: visible !important;
+    text-overflow: unset !important;
+    height: auto !important;
+    min-height: 2.55rem !important;
+    padding: 0.45rem 0.75rem !important;
+    line-height: 1.25 !important;
+}
+[data-testid="stButton"] button p,
+[data-testid="stDownloadButton"] button p,
+[data-testid="stLinkButton"] a p,
+[data-testid="stMetricLabel"],
+[data-testid="stMetricLabel"] p,
+[data-testid="stMetricValue"],
+[data-testid="stMetricDelta"] {
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: unset !important;
+    line-height: 1.25 !important;
+}
 </style>
 """
 
@@ -395,11 +420,11 @@ def _build_category_chart(analysis: AnalysisResult) -> go.Figure:
     )
     fig.update_layout(
         height=max(220, 42 * len(ordered) + 60),
-        margin=dict(l=10, r=40, t=10, b=20),
+        margin=dict(l=16, r=56, t=12, b=24),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        xaxis={"range": [0, 112], "title": "Coverage (%)", "gridcolor": "rgba(142,160,181,0.15)"},
-        yaxis={"title": ""},
+        xaxis={"range": [0, 114], "title": "Coverage (%)", "gridcolor": "rgba(142,160,181,0.15)", "automargin": True},
+        yaxis={"title": "", "automargin": True},
         font={"color": "#edf3fa"},
     )
     return fig
@@ -439,10 +464,11 @@ def _build_compare_chart(compare_result: CompareResult) -> go.Figure:
     fig.update_layout(
         barmode="group",
         height=max(260, 80 * len(rankings) + 70),
-        margin=dict(l=10, r=20, t=20, b=30),
+        margin=dict(l=16, r=24, t=24, b=30),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        xaxis={"range": [0, 105], "title": "Score (%)", "gridcolor": "rgba(142,160,181,0.15)"},
+        xaxis={"range": [0, 106], "title": "Score (%)", "gridcolor": "rgba(142,160,181,0.15)", "automargin": True},
+        yaxis={"automargin": True},
         legend={"orientation": "h", "yanchor": "bottom", "y": 1.02, "xanchor": "left", "x": 0},
         font={"color": "#edf3fa"},
     )
@@ -523,38 +549,40 @@ def _render_resume_input() -> None:
     words = len(st.session_state["resume_text"].split())
     st.caption(f"{words} words")
 
-    c_alex, c_pdf, c_clear = st.columns([1.15, 1.35, 0.7])
+    c_alex, c_pdf = st.columns(2)
     c_alex.button(
-        "Sample: Alex (Text)",
+        "Load Alex Sample",
         on_click=_load_sample_resume,
         key="btn_sample_resume",
         use_container_width=True,
     )
     c_pdf.button(
-        "Sample: Shaswat PDF",
+        "Load Shaswat PDF",
         on_click=_load_shaswat_pdf_resume,
         key="btn_sample_shaswat_pdf",
         use_container_width=True,
         help="Parses examples/playlikeboy_resume.pdf fetched from playlikeboy.github.io/resume",
     )
-    c_clear.button("Clear", on_click=_clear_resume, key="btn_clear_resume", use_container_width=True)
 
+    dl_col, clr_col = st.columns(2)
     if SAMPLE_PDF_PATH.exists():
-        dl_col, link_col = st.columns([1.2, 1.8])
         dl_col.download_button(
-            "Download sample PDF",
+            "Download Sample PDF",
             data=SAMPLE_PDF_PATH.read_bytes(),
             file_name="playlikeboy_resume.pdf",
             mime="application/pdf",
             key="btn_download_sample_pdf",
             use_container_width=True,
         )
-        link_col.caption(f"Source: [playlikeboy.github.io/resume]({RESUME_PAGE_URL})")
+    else:
+        dl_col.link_button("Sample Resume Source", RESUME_PAGE_URL, use_container_width=True)
+    clr_col.button("Clear Resume", on_click=_clear_resume, key="btn_clear_resume", use_container_width=True)
+    st.caption(f"Sample PDF source: [playlikeboy.github.io/resume]({RESUME_PAGE_URL})")
 
 
 def _render_single_analysis_results(analysis: AnalysisResult) -> None:
     st.divider()
-    header_col, md_col, json_col = st.columns([3, 1, 1])
+    header_col, md_col, json_col = st.columns([2.4, 1.3, 1.3])
     with header_col:
         st.subheader("03 / Match Report")
         st.caption(f"Score band: **{analysis.score_band}** · Semantic mode: `{analysis.semantic_mode}`")
@@ -575,21 +603,21 @@ def _render_single_analysis_results(analysis: AnalysisResult) -> None:
             use_container_width=True,
         )
 
-    gauge_col, stats_col = st.columns([1.2, 1.8])
+    gauge_col, stats_col = st.columns([1.15, 1.85])
     with gauge_col:
         st.plotly_chart(_build_score_gauge(analysis.overall_score), use_container_width=True)
     with stats_col:
         m1, m2, m3 = st.columns(3)
-        m1.metric("Overall Alignment", f"{analysis.overall_score:.1f}%", analysis.score_band)
-        m2.metric("Weighted Coverage", f"{analysis.coverage_score:.1f}%")
-        m3.metric("Semantic Signal", f"{analysis.semantic_score:.1f}%")
-
-        s1, s2, s3, s4 = st.columns(4)
-        s1.metric("Requirements", analysis.requirements_found)
-        s2.metric("Strong", analysis.strong_matches)
-        s3.metric("Partial", analysis.partial_matches)
-        s4.metric("Missing", analysis.missing_skills)
+        m1.metric("Overall Match", f"{analysis.overall_score:.1f}%", analysis.score_band)
+        m2.metric("Coverage", f"{analysis.coverage_score:.1f}%")
+        m3.metric("Semantic", f"{analysis.semantic_score:.1f}%")
         st.caption("Use this score as a decision-support signal, not a hiring verdict.")
+
+    s1, s2, s3, s4 = st.columns(4)
+    s1.metric("Requirements", analysis.requirements_found)
+    s2.metric("Strong Matches", analysis.strong_matches)
+    s3.metric("Partial Matches", analysis.partial_matches)
+    s4.metric("Missing Skills", analysis.missing_skills)
 
     if analysis.category_breakdown:
         st.markdown("### Domain Category Coverage")
@@ -821,7 +849,7 @@ def main() -> None:
     q1.link_button("Open 5th-Sem PPT", PPT_VIEWER_URL, use_container_width=True)
     if PPT_PATH.exists():
         q2.download_button(
-            "Download PPT (.pptx)",
+            "Download PPTX",
             data=PPT_PATH.read_bytes(),
             file_name="Matchwise_5th_Sem_Presentation.pptx",
             mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
@@ -830,7 +858,7 @@ def main() -> None:
         )
     else:
         q2.link_button("PPT on GitHub", PPT_GITHUB_URL, use_container_width=True)
-    q3.link_button("Easy → Advanced Guide", f"{REPO_URL}/blob/main/docs/PROJECT_GUIDE.md", use_container_width=True)
+    q3.link_button("Project Guide", f"{REPO_URL}/blob/main/docs/PROJECT_GUIDE.md", use_container_width=True)
     q4.link_button("playlikeboy.github.io", PORTFOLIO_URL, use_container_width=True)
 
     mode = st.radio(
@@ -848,15 +876,18 @@ def main() -> None:
 
         with col_jd:
             st.subheader("02 / Target Job Description")
-            preset_cols = st.columns(len(ROLE_PRESETS))
-            for col, (preset_key, preset) in zip(preset_cols, ROLE_PRESETS.items()):
-                col.button(
-                    preset["label"],
-                    on_click=_apply_preset,
-                    args=(preset_key,),
-                    key=f"preset_{preset_key}",
-                    use_container_width=True,
-                )
+            preset_items = list(ROLE_PRESETS.items())
+            for row_start in range(0, len(preset_items), 3):
+                row_slice = preset_items[row_start:row_start + 3]
+                row_cols = st.columns(len(row_slice))
+                for col, (preset_key, preset) in zip(row_cols, row_slice):
+                    col.button(
+                        preset["label"],
+                        on_click=_apply_preset,
+                        args=(preset_key,),
+                        key=f"preset_{preset_key}",
+                        use_container_width=True,
+                    )
             st.caption(
                 "Required and preferred skills are weighted 2:1 when section headings or inline markers appear."
             )
