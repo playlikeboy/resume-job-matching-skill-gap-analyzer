@@ -3,8 +3,8 @@
 Welcome! This guide teaches the entire **Intelligent Resume–Job Matching & Explainable Skill Gap Analyzer (`matchwise.`)** from zero to deep mastery—using concrete examples, actual code walkthroughs, solved bugs, viva Q&A, and complete step-by-step run instructions.
 
 - **Live Streamlit App:** [https://resume-job-matching-skill-gap-analyzer.streamlit.app/](https://resume-job-matching-skill-gap-analyzer.streamlit.app/)
-- **Canva Presentation (14 Slides):** [https://canva.link/b49q19khynjv1j9](https://canva.link/b49q19khynjv1j9)
-- **Canva Project Report:** [https://canva.link/5n32fpxtsql4sbn](https://canva.link/5n32fpxtsql4sbn)
+- **Canva Presentation (14 Slides):** [https://canva.link/wy8akal2lz3jieq](https://canva.link/wy8akal2lz3jieq)
+- **Canva Project Report:** [https://canva.link/dbscv9ufhqzi9p0](https://canva.link/dbscv9ufhqzi9p0)
 - **Presenter Script & Viva Q&A:** [`docs/PRESENTATION_SCRIPT.md`](PRESENTATION_SCRIPT.md)
 - **Minor Project Report:** [`docs/Minor_Project_Report_2.pdf`](Minor_Project_Report_2.pdf) · [`docs/Minor_Project_Report_2.docx`](Minor_Project_Report_2.docx)
 - **Author Portfolio & 7 Sample Resume PDFs:** [https://playlikeboy.github.io/](https://playlikeboy.github.io/) · [https://playlikeboy.github.io/resume](https://playlikeboy.github.io/resume)

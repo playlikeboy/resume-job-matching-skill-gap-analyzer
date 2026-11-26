@@ -13,8 +13,8 @@ This guide prepares **Shaswat Raj (`BTECH/10574/24`)** and **Satyam Hansda (`BTE
   - **Presenter 2 (Shaswat / Satyam — Tech Stack, Live Demo, Results & Conclusion):** Slides **9 to 14** (~4.5 min).
 - **Resources to keep open before your turn:**
   1. **Live Streamlit App:** `https://resume-job-matching-skill-gap-analyzer.streamlit.app/`
-  2. **Canva Presentation:** `https://canva.link/b49q19khynjv1j9` (or local [`docs/Matchwise_5th_Sem_Presentation.pptx`](Matchwise_5th_Sem_Presentation.pptx))
-  3. **Canva Project Report:** `https://canva.link/5n32fpxtsql4sbn` (and PDF [`docs/Minor_Project_Report_2.pdf`](Minor_Project_Report_2.pdf))
+  2. **Canva Presentation:** `https://canva.link/wy8akal2lz3jieq` (or local [`docs/Matchwise_5th_Sem_Presentation.pptx`](Matchwise_5th_Sem_Presentation.pptx))
+  3. **Canva Project Report:** `https://canva.link/dbscv9ufhqzi9p0` (and PDF [`docs/Minor_Project_Report_2.pdf`](Minor_Project_Report_2.pdf))
 
 ---
 

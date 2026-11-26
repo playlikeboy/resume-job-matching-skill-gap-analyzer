@@ -14,7 +14,7 @@
 ![FastAPI](https://img.shields.io/badge/FastAPI-Optional%20API-009688?logo=fastapi&logoColor=white)
 ![Visitor Count](https://visitor-badge.laobi.icu/badge?page_id=playlikeboy.resume-job-matching-skill-gap-analyzer)
 
-[**Launch Live App**](https://resume-job-matching-skill-gap-analyzer.streamlit.app/) · [**Canva PPT**](https://canva.link/b49q19khynjv1j9) · [**Canva Report**](https://canva.link/5n32fpxtsql4sbn) · [**Report PDF**](docs/Minor_Project_Report_2.pdf) · [**Learning Guide**](docs/PROJECT_GUIDE.md) · [**PPT Script & Q&A**](docs/PRESENTATION_SCRIPT.md) · [**Portfolio**](https://playlikeboy.github.io/)
+[**Launch Live App**](https://resume-job-matching-skill-gap-analyzer.streamlit.app/) · [**Canva PPT**](https://canva.link/wy8akal2lz3jieq) · [**Canva Report**](https://canva.link/dbscv9ufhqzi9p0) · [**Report PDF**](docs/Minor_Project_Report_2.pdf) · [**Learning Guide**](docs/PROJECT_GUIDE.md) · [**PPT Script & Q&A**](docs/PRESENTATION_SCRIPT.md) · [**Portfolio**](https://playlikeboy.github.io/)
 
 </div>
 
@@ -171,8 +171,8 @@ examples/
 ## Links & academic notes
 
 - **Live App:** [https://resume-job-matching-skill-gap-analyzer.streamlit.app/](https://resume-job-matching-skill-gap-analyzer.streamlit.app/)
-- **Canva Presentation (14 Slides):** [https://canva.link/b49q19khynjv1j9](https://canva.link/b49q19khynjv1j9)
-- **Canva Minor Project Report:** [https://canva.link/5n32fpxtsql4sbn](https://canva.link/5n32fpxtsql4sbn)
+- **Canva Presentation (14 Slides):** [https://canva.link/wy8akal2lz3jieq](https://canva.link/wy8akal2lz3jieq)
+- **Canva Minor Project Report:** [https://canva.link/dbscv9ufhqzi9p0](https://canva.link/dbscv9ufhqzi9p0)
 - **Author Portfolio:** [https://playlikeboy.github.io/](https://playlikeboy.github.io/)
 - **7 Sample Resume PDFs:** [`examples/resumes/`](examples/resumes/) (from [playlikeboy.github.io/resume](https://playlikeboy.github.io/resume), `/sde`, `/fde`, `/devops`, `/ai`, `/fullstack`, `/founding`)
 - **Presenter Script & Viva Q&A:** [`docs/PRESENTATION_SCRIPT.md`](docs/PRESENTATION_SCRIPT.md)
