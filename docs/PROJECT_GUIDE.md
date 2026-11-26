@@ -2,6 +2,8 @@
 
 Welcome! This guide explains the entire **Intelligent Resume–Job Matching & Explainable Skill Gap Analyzer (`matchwise.`)** project step by step—starting from plain-English intuition and moving all the way down to the exact regex patterns, scoring math, Streamlit UI state management, evaluation harness, and deployment.
 
+- **Live Streamlit App:** [https://resume-job-matching-skill-gap-analyzer.streamlit.app/](https://resume-job-matching-skill-gap-analyzer.streamlit.app/)
+- **5th-Semester Presentation (PPT):** [`docs/Matchwise_5th_Sem_Presentation.pptx`](Matchwise_5th_Sem_Presentation.pptx)
 - **Portfolio & Sample Resume Source:** [https://playlikeboy.github.io/](https://playlikeboy.github.io/) · [https://playlikeboy.github.io/resume](https://playlikeboy.github.io/resume)
 - **Repository:** [https://github.com/playlikeboy/resume-job-matching-skill-gap-analyzer](https://github.com/playlikeboy/resume-job-matching-skill-gap-analyzer)
 

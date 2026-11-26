@@ -1,10 +1,16 @@
 {
   "project": "Intelligent Resume–Job Matching & Explainable Skill Gap Analyzer",
+  "name": "matchwise.",
   "version": "0.2.0",
+  "live_app": "https://resume-job-matching-skill-gap-analyzer.streamlit.app/",
   "repository": "https://github.com/playlikeboy/resume-job-matching-skill-gap-analyzer",
+  "author_portfolio": "https://playlikeboy.github.io/",
+  "sample_resume_source": "https://playlikeboy.github.io/resume",
+  "presentation": "docs/Matchwise_5th_Sem_Presentation.pptx",
+  "guide": "docs/PROJECT_GUIDE.md",
   "stack": {
     "frontend": ["Streamlit", "Plotly"],
-    "backend": ["Python 3.11", "FastAPI", "Pydantic", "PyMuPDF", "python-docx"],
+    "backend": ["Python 3.11", "FastAPI (optional)", "Pydantic", "PyMuPDF", "python-docx"],
     "ml_optional": ["Sentence Transformers (all-MiniLM-L6-v2)"]
   },
   "source_documents": [

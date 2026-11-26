@@ -23,8 +23,17 @@ from app.services.taxonomy import SKILLS  # noqa: E402
 from scripts.evaluate import evaluate  # noqa: E402
 
 SAMPLE_PDF_PATH = REPO_ROOT / "examples" / "playlikeboy_resume.pdf"
+PPT_PATH = REPO_ROOT / "docs" / "Matchwise_5th_Sem_Presentation.pptx"
 PORTFOLIO_URL = "https://playlikeboy.github.io/"
 RESUME_PAGE_URL = "https://playlikeboy.github.io/resume"
+LIVE_APP_URL = "https://resume-job-matching-skill-gap-analyzer.streamlit.app/"
+REPO_URL = "https://github.com/playlikeboy/resume-job-matching-skill-gap-analyzer"
+PPT_GITHUB_URL = f"{REPO_URL}/blob/main/docs/Matchwise_5th_Sem_Presentation.pptx"
+PPT_VIEWER_URL = (
+    "https://view.officeapps.live.com/op/view.aspx?src="
+    "https%3A%2F%2Fraw.githubusercontent.com%2Fplaylikeboy%2Fresume-job-matching-skill-gap-analyzer"
+    "%2Fmain%2Fdocs%2FMatchwise_5th_Sem_Presentation.pptx"
+)
 
 SAMPLE_RESUME = """Alex Example
 Computer Science student
@@ -778,10 +787,23 @@ def main() -> None:
         )
         st.divider()
         st.caption("In-memory only: uploaded resumes and pasted text are analyzed on demand and never persisted.")
-        st.markdown("### Links")
+        st.markdown("### Project & PPT Links")
+        st.markdown(f"- [Open 5th-Sem PPT in Browser]({PPT_VIEWER_URL})")
+        st.markdown(f"- [PPT File on GitHub]({PPT_GITHUB_URL})")
+        st.markdown(f"- [Easy → Advanced Guide]({REPO_URL}/blob/main/docs/PROJECT_GUIDE.md)")
+        st.markdown(f"- [Live Streamlit App]({LIVE_APP_URL})")
         st.markdown(f"- [Author Portfolio (playlikeboy.github.io)]({PORTFOLIO_URL})")
-        st.markdown(f"- [Live Resume PDF Source]({RESUME_PAGE_URL})")
-        st.markdown("- [GitHub Repository](https://github.com/playlikeboy/resume-job-matching-skill-gap-analyzer)")
+        st.markdown(f"- [Sample Resume PDF Source]({RESUME_PAGE_URL})")
+        st.markdown(f"- [GitHub Repository]({REPO_URL})")
+        if PPT_PATH.exists():
+            st.download_button(
+                "Download 5th-Sem PPT (.pptx)",
+                data=PPT_PATH.read_bytes(),
+                file_name="Matchwise_5th_Sem_Presentation.pptx",
+                mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                key="sidebar_download_ppt",
+                use_container_width=True,
+            )
 
     st.markdown(
         '<div class="mw-hero">'
@@ -794,6 +816,22 @@ def main() -> None:
         '</div>',
         unsafe_allow_html=True,
     )
+
+    q1, q2, q3, q4 = st.columns(4)
+    q1.link_button("Open 5th-Sem PPT", PPT_VIEWER_URL, use_container_width=True)
+    if PPT_PATH.exists():
+        q2.download_button(
+            "Download PPT (.pptx)",
+            data=PPT_PATH.read_bytes(),
+            file_name="Matchwise_5th_Sem_Presentation.pptx",
+            mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            key="hero_download_ppt",
+            use_container_width=True,
+        )
+    else:
+        q2.link_button("PPT on GitHub", PPT_GITHUB_URL, use_container_width=True)
+    q3.link_button("Easy → Advanced Guide", f"{REPO_URL}/blob/main/docs/PROJECT_GUIDE.md", use_container_width=True)
+    q4.link_button("playlikeboy.github.io", PORTFOLIO_URL, use_container_width=True)
 
     mode = st.radio(
         "Workspace",
