@@ -28,8 +28,8 @@
 - **Explainable Skill Extraction:** Uses boundary-aware regex (`(?<![A-Za-z0-9])`), alias normalization (`JS` → `JavaScript`, `k8s` → `Kubernetes`, `postgres` → `PostgreSQL`), case/context guards (`Go`, `Express.js`), negation filtering (`no prior experience with ...`), and exact evidence quotes.
 - **Weighted Requirement Parsing:** Detects **required (`2.0`)** vs **preferred (`1.0`)** skills from section headings and inline markers (`nice to have`, `bonus`, `preferred`).
 - **Hybrid Scoring & Domain Breakdown:** Combines weighted coverage and semantic similarity (configurable `semantic_weight` from `0%` to `50%`) with domain-level coverage charts and extra detected skills.
-- **Multi-Role Ranking & Roadmap:** Ranks up to **5 target job descriptions** side-by-side, prioritizes a **learning roadmap** (required gaps first) with project ideas, and exports **Markdown / JSON** reports.
-- **5th-Semester Presentation & Guide:** Includes the full 14-slide BIT Mesra presentation ([`docs/Matchwise_5th_Sem_Presentation.pptx`](docs/Matchwise_5th_Sem_Presentation.pptx)) and beginner-to-advanced walkthrough ([`docs/PROJECT_GUIDE.md`](docs/PROJECT_GUIDE.md)).
+- **Multi-Role Ranking & `roadmap.sh` Learning Hub:** Ranks up to **5 target job descriptions** side-by-side, prioritizes gaps with clickable [`roadmap.sh`](https://roadmap.sh/) tracks, curated docs/practice links, score-impact badges, an interactive **What-If Score Simulator**, and **Markdown / JSON / Study Plan** exports.
+- **5th-Semester Presentation & Guide:** Includes the full 14-slide BIT Mesra presentation ([`docs/Matchwise_5th_Sem_Presentation.pptx`](docs/Matchwise_5th_Sem_Presentation.pptx)), [Canva deck](https://canva.link/wy8akal2lz3jieq), [Project Report PDF](docs/Minor_Project_Report_2.pdf), and beginner-to-advanced walkthrough ([`docs/PROJECT_GUIDE.md`](docs/PROJECT_GUIDE.md)).
 
 ## Research question
 
@@ -71,7 +71,7 @@ flowchart LR
 | **Document Parsing** | `PyMuPDF (fitz)`, `python-docx` | In-memory text extraction from PDF, DOCX, and TXT resumes |
 | **NLP & Semantics** | Curated Taxonomy (54 skills), Boundary Regex, `Sentence Transformers` (optional) | Alias normalization, negation filtering, and `all-MiniLM-L6-v2` similarity |
 | **Optional REST API** | `FastAPI`, `Uvicorn` | HTTP endpoints (`/api/analyze`, `/api/compare`, `/api/resume/parse`, `/api/taxonomy`) |
-| **Testing & CI** | `pytest`, `Streamlit AppTest`, `GitHub Actions` | 22 automated unit, API, evaluation, and UI tests |
+| **Testing & CI** | `pytest`, `Streamlit AppTest`, `GitHub Actions` | 24 automated unit, API, evaluation, and UI tests |
 
 ## Benchmark snapshot (`B0` vs `B1` vs `H1`)
 

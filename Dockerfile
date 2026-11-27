@@ -10,6 +10,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY .streamlit ./.streamlit
 COPY backend ./backend
+COPY docs/Matchwise_5th_Sem_Presentation.pptx docs/Minor_Project_Report_2.pdf ./docs/
 COPY examples ./examples
 COPY streamlit_app.py .
 

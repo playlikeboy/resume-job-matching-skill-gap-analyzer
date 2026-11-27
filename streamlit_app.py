@@ -428,6 +428,15 @@ def _init_state() -> None:
     for key, value in defaults.items():
         if key not in st.session_state:
             st.session_state[key] = value
+    # Clear stale cached Pydantic models if backend schemas reloaded in the same worker
+    if st.session_state["analysis_result"] is not None and not isinstance(
+        st.session_state["analysis_result"], AnalysisResult
+    ):
+        st.session_state["analysis_result"] = None
+    if st.session_state["compare_result"] is not None and not isinstance(
+        st.session_state["compare_result"], CompareResult
+    ):
+        st.session_state["compare_result"] = None
 
 
 def _set_semantic_weight(weight: float) -> None:
@@ -593,8 +602,8 @@ def _build_score_gauge(score: float) -> go.Figure:
         )
     )
     fig.update_layout(
-        height=220,
-        margin=dict(l=20, r=20, t=20, b=10),
+        height=230,
+        margin=dict(l=32, r=32, t=24, b=12),
         paper_bgcolor="rgba(0,0,0,0)",
         font={"color": "#edf3fa"},
     )
@@ -1256,6 +1265,7 @@ def main() -> None:
             use_container_width=True,
         ):
             try:
+                st.session_state.pop("sim_learned_skills", None)
                 st.session_state["analysis_result"] = analyze_resume_job(
                     resume_text=st.session_state["resume_text"],
                     job_description=st.session_state["job_description"],
