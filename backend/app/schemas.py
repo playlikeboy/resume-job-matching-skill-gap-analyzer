@@ -14,6 +14,12 @@ class AnalyzeRequest(BaseModel):
         return value.strip()
 
 
+class LearningResource(BaseModel):
+    title: str
+    url: str
+    kind: str = "resource"
+
+
 class SkillMatch(BaseModel):
     skill: str
     category: str
@@ -25,14 +31,27 @@ class SkillMatch(BaseModel):
     evidence: str | None = None
     explanation: str
     requirement_rationale: str = ""
+    roadmap_url: str | None = None
+    roadmap_label: str | None = None
+    learning_resources: list[LearningResource] = Field(default_factory=list)
+    estimated_hours: str = ""
 
 
 class LearningStep(BaseModel):
     skill: str
+    category: str = ""
+    status: str = "missing"
     priority: str
+    weight: float = 1.0
+    score_impact_pct: float = 0.0
+    estimated_hours: str = "4–8 hrs"
     reason: str
     task: str
     project_idea: str
+    resume_bullet_tip: str = ""
+    roadmap_url: str = "https://roadmap.sh/"
+    roadmap_label: str = "roadmap.sh"
+    resources: list[LearningResource] = Field(default_factory=list)
 
 
 class CategorySummary(BaseModel):

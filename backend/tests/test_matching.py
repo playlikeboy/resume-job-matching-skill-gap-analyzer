@@ -1,6 +1,8 @@
 from app.services.analysis import analyze_resume_job
 from app.services.requirements import extract_job_requirements
+from app.services.roadmap import get_skill_learning_guide
 from app.services.skill_extraction import extract_skills
+from app.services.taxonomy import SKILLS
 
 
 def test_alias_normalization_js_to_javascript():
@@ -108,3 +110,22 @@ def test_related_technology_is_only_a_partial_match():
     rest = next(item for item in result.partial_skills if item.skill == "REST APIs")
     assert rest.match_value == 0.5
     assert "Related" in rest.explanation
+    assert rest.roadmap_url == "https://roadmap.sh/api-design"
+    assert len(rest.learning_resources) >= 1
+
+
+def test_every_taxonomy_skill_has_roadmap_sh_and_resources():
+    for skill, meta in SKILLS.items():
+        guide = get_skill_learning_guide(skill, meta["category"])
+        assert str(guide["roadmap_url"]).startswith("https://roadmap.sh/")
+        assert len(guide["resources"]) >= 1  # type: ignore[arg-type]
+        assert guide["resume_bullet_tip"]
+
+    result = analyze_resume_job(
+        "Built a frontend with React and JavaScript.",
+        "Required: React, JavaScript and Docker.",
+    )
+    docker_step = next(step for step in result.learning_roadmap if step.skill == "Docker")
+    assert docker_step.roadmap_url == "https://roadmap.sh/docker"
+    assert docker_step.score_impact_pct > 0
+    assert docker_step.resume_bullet_tip

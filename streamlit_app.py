@@ -16,9 +16,10 @@ if str(BACKEND_ROOT) not in sys.path:
     sys.path.insert(0, str(BACKEND_ROOT))
 
 from app.config import get_settings  # noqa: E402
-from app.schemas import AnalysisResult, CompareResult, JobItem, SkillMatch  # noqa: E402
-from app.services.analysis import analyze_resume_job, compare_resume_to_jobs  # noqa: E402
+from app.schemas import AnalysisResult, CompareResult, JobItem, LearningResource, SkillMatch  # noqa: E402
+from app.services.analysis import _score_band, analyze_resume_job, compare_resume_to_jobs  # noqa: E402
 from app.services.extractors import extract_resume_text  # noqa: E402
+from app.services.roadmap import get_skill_learning_guide  # noqa: E402
 from app.services.taxonomy import SKILLS  # noqa: E402
 from scripts.evaluate import evaluate  # noqa: E402
 
@@ -287,6 +288,61 @@ CUSTOM_CSS = """
     font-weight: 800;
     color: #73d9c3;
 }
+.mw-res-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.55rem;
+}
+.mw-roadmap-pill, .mw-res-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.22rem 0.62rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-decoration: none !important;
+    transition: transform 0.12s ease, border-color 0.12s ease;
+}
+.mw-roadmap-pill {
+    background: rgba(115, 217, 195, 0.14);
+    border: 1px solid rgba(115, 217, 195, 0.45);
+    color: #9ff0dc !important;
+}
+.mw-roadmap-pill:hover {
+    border-color: #73d9c3;
+    transform: translateY(-1px);
+}
+.mw-res-pill {
+    background: #182a40;
+    border: 1px solid #2e4b6b;
+    color: #cde0f5 !important;
+}
+.mw-res-pill:hover {
+    border-color: #62a5df;
+    transform: translateY(-1px);
+}
+.mw-impact-pill {
+    display: inline-block;
+    padding: 0.14rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    background: rgba(79, 163, 209, 0.16);
+    color: #8fd0f5;
+    border: 1px solid rgba(79, 163, 209, 0.38);
+}
+.mw-tip-box {
+    margin-top: 0.45rem;
+    padding: 0.4rem 0.65rem;
+    border-left: 3px solid #f2c77a;
+    background: rgba(13, 23, 36, 0.65);
+    border-radius: 0 6px 6px 0;
+    font-size: 0.84rem;
+    color: #e8dec8;
+}
 .mw-footer {
     margin-top: 2rem;
     padding-top: 0.85rem;
@@ -446,6 +502,7 @@ def _format_markdown_report(analysis: AnalysisResult) -> str:
         *(
             [
                 f"- **{s.skill}** ({s.importance}, sim={s.similarity}): {s.explanation}"
+                + (f" — Roadmap: [{s.roadmap_label or 'roadmap.sh'}]({s.roadmap_url})" if s.roadmap_url else "")
                 for s in analysis.partial_skills
             ]
             or ["- None"]
@@ -455,6 +512,7 @@ def _format_markdown_report(analysis: AnalysisResult) -> str:
         *(
             [
                 f"- **{s.skill}** ({s.importance}): {s.explanation}"
+                + (f" — Roadmap: [{s.roadmap_label or 'roadmap.sh'}]({s.roadmap_url})" if s.roadmap_url else "")
                 for s in analysis.missing_skill_matches
             ]
             or ["- None"]
@@ -463,9 +521,20 @@ def _format_markdown_report(analysis: AnalysisResult) -> str:
         "## Prioritized Learning Roadmap",
         *(
             [
-                f"{idx}. **{step.skill}** [{step.priority} priority]\n"
-                f"   - Task: {step.task}\n"
-                f"   - Project: {step.project_idea}"
+                f"{idx}. **{step.skill}** [{step.priority} priority"
+                + (f", +{step.score_impact_pct:.1f}% impact" if step.score_impact_pct > 0 else "")
+                + f", ~{step.estimated_hours}]\n"
+                f"   - Roadmap: [{step.roadmap_label}]({step.roadmap_url})\n"
+                + (
+                    "   - Resources: "
+                    + ", ".join(f"[{res.title}]({res.url})" for res in step.resources)
+                    + "\n"
+                    if step.resources
+                    else ""
+                )
+                + f"   - Task: {step.task}\n"
+                + f"   - Project: {step.project_idea}"
+                + (f"\n   - Resume bullet starter (after building): {step.resume_bullet_tip}" if step.resume_bullet_tip else "")
                 for idx, step in enumerate(analysis.learning_roadmap, start=1)
             ]
             or ["- No skill gaps detected."]
@@ -583,7 +652,50 @@ def _build_compare_chart(compare_result: CompareResult) -> go.Figure:
     return fig
 
 
-def _render_skill_cards(title: str, items: list[SkillMatch], tone_class: str, empty_msg: str) -> None:
+_RESOURCE_ICONS = {
+    "roadmap": "🗺️",
+    "docs": "📖",
+    "practice": "🧪",
+    "course": "🎓",
+    "resource": "🔗",
+}
+
+
+def _render_resources_html(
+    roadmap_url: str | None,
+    roadmap_label: str | None,
+    resources: list[LearningResource],
+) -> str:
+    """Build clickable roadmap.sh + curated resource HTML pills for gap cards."""
+    pills: list[str] = []
+    seen_urls: set[str] = set()
+    if roadmap_url:
+        seen_urls.add(roadmap_url)
+        label = roadmap_label or "roadmap.sh"
+        pills.append(
+            f'<a class="mw-roadmap-pill" href="{html.escape(roadmap_url)}" '
+            f'target="_blank" rel="noopener noreferrer">🗺️ {html.escape(label)}</a>'
+        )
+    for res in resources:
+        if res.url in seen_urls:
+            continue
+        seen_urls.add(res.url)
+        icon = _RESOURCE_ICONS.get(res.kind, "🔗")
+        pills.append(
+            f'<a class="mw-res-pill" href="{html.escape(res.url)}" '
+            f'target="_blank" rel="noopener noreferrer">{icon} {html.escape(res.title)}</a>'
+        )
+    return f'<div class="mw-res-row">{"".join(pills)}</div>' if pills else ""
+
+
+def _render_skill_cards(
+    title: str,
+    items: list[SkillMatch],
+    tone_class: str,
+    empty_msg: str,
+    *,
+    show_learning_links: bool = False,
+) -> None:
     st.markdown(f"#### {html.escape(title)} ({len(items)})")
     if not items:
         st.info(empty_msg)
@@ -597,6 +709,12 @@ def _render_skill_cards(title: str, items: list[SkillMatch], tone_class: str, em
             if item.requirement_rationale
             else ""
         )
+        hours_note = f" · ⏱ {html.escape(item.estimated_hours)}" if show_learning_links and item.estimated_hours else ""
+        resources_html = (
+            _render_resources_html(item.roadmap_url, item.roadmap_label, item.learning_resources)
+            if show_learning_links
+            else ""
+        )
         card_html = (
             f'<div class="mw-card">'
             f'<div class="mw-card-title">'
@@ -604,10 +722,11 @@ def _render_skill_cards(title: str, items: list[SkillMatch], tone_class: str, em
             f'<span class="mw-badge {tone_class}">{html.escape(item.status)}</span>'
             f'</div>'
             f'<div class="mw-meta">{html.escape(item.category)} · {html.escape(item.importance)} '
-            f'(w={item.weight:g}) · sim {round(item.similarity * 100)}%</div>'
+            f'(w={item.weight:g}) · sim {round(item.similarity * 100)}%{hours_note}</div>'
             f'<div style="font-size:0.9rem;color:#dce7f3;">{html.escape(item.explanation)}</div>'
             f'{rationale_html}'
             f'{evidence_html}'
+            f'{resources_html}'
             f'</div>'
         )
         st.markdown(card_html, unsafe_allow_html=True)
@@ -747,6 +866,7 @@ def _render_single_analysis_results(analysis: AnalysisResult) -> None:
             analysis.partial_skills,
             "mw-partial",
             "No partial matches found.",
+            show_learning_links=True,
         )
     with c3:
         _render_skill_cards(
@@ -754,6 +874,7 @@ def _render_single_analysis_results(analysis: AnalysisResult) -> None:
             analysis.missing_skill_matches,
             "mw-missing",
             "No missing skills detected.",
+            show_learning_links=True,
         )
 
     if analysis.extra_resume_skills:
@@ -762,23 +883,73 @@ def _render_single_analysis_results(analysis: AnalysisResult) -> None:
         chips = "".join(f'<span class="mw-chip">{html.escape(skill)}</span>' for skill in analysis.extra_resume_skills)
         st.markdown(f"<div>{chips}</div>", unsafe_allow_html=True)
 
-    st.markdown("### 04 / Prioritized Learning Roadmap")
-    if analysis.learning_roadmap:
+    st.markdown("### 04 / Prioritized Learning Roadmap & Score Simulator")
+    gap_items = [*analysis.missing_skill_matches, *analysis.partial_skills]
+    if analysis.learning_roadmap and gap_items:
+        gap_options = [item.skill for item in sorted(gap_items, key=lambda x: (-x.weight, x.match_value))]
+        with st.container(border=True):
+            st.caption("Simulate closing skill gaps to preview how much your match score improves:")
+            simulated_skills = st.multiselect(
+                "Mark skills as learned / project built",
+                options=gap_options,
+                default=gap_options[: min(2, len(gap_options))],
+                key="sim_learned_skills",
+            )
+            all_items = [*analysis.matched_skills, *analysis.partial_skills, *analysis.missing_skill_matches]
+            total_w = sum(it.weight for it in all_items) or 1.0
+            sim_set = set(simulated_skills)
+            sim_cov = 100.0 * sum(
+                it.weight * (1.0 if it.skill in sim_set else it.match_value) for it in all_items
+            ) / total_w
+            sim_sem = 100.0 * sum(
+                it.weight * (1.0 if it.skill in sim_set else it.similarity) for it in all_items
+            ) / total_w
+            sim_overall = round((1.0 - analysis.semantic_weight) * sim_cov + analysis.semantic_weight * sim_sem, 2)
+            delta = round(sim_overall - analysis.overall_score, 2)
+            sc1, sc2, sc3 = st.columns(3)
+            sc1.metric("Simulated Overall", f"{sim_overall:.1f}%", f"{delta:+.1f}% vs current")
+            sc2.metric("Simulated Coverage", f"{sim_cov:.1f}%", f"{sim_cov - analysis.coverage_score:+.1f}%")
+            sc3.metric("Projected Band", _score_band(sim_overall))
+
         for idx, step in enumerate(analysis.learning_roadmap, start=1):
             badge_cls = "mw-missing" if step.priority.lower() == "high" else "mw-partial"
+            impact_pill = (
+                f'<span class="mw-impact-pill">+{step.score_impact_pct:.1f}% coverage impact</span>'
+                if step.score_impact_pct > 0
+                else ""
+            )
+            resources_html = _render_resources_html(step.roadmap_url, step.roadmap_label, step.resources)
+            bullet_html = (
+                f'<div class="mw-tip-box"><strong>💡 Resume bullet starter (after finishing project):</strong> '
+                f'{html.escape(step.resume_bullet_tip)}</div>'
+                if step.resume_bullet_tip
+                else ""
+            )
             roadmap_html = (
                 f'<div class="mw-card">'
                 f'<div class="mw-card-title">'
                 f'<strong>{idx:02d}. {html.escape(step.skill)}</strong>'
-                f'<span class="mw-badge {badge_cls}">{html.escape(step.priority)} priority</span>'
+                f'<div>{impact_pill} <span class="mw-badge {badge_cls}">{html.escape(step.priority)} priority</span></div>'
                 f'</div>'
-                f'<div class="mw-meta">{html.escape(step.reason)}</div>'
+                f'<div class="mw-meta">{html.escape(step.category or "Technical Skill")} · ⏱ {html.escape(step.estimated_hours)} · {html.escape(step.reason)}</div>'
                 f'<div style="font-size:0.9rem;"><strong>Learning task:</strong> {html.escape(step.task)}</div>'
                 f'<div style="font-size:0.9rem;margin-top:0.25rem;"><strong>Project idea:</strong> '
                 f'{html.escape(step.project_idea)}</div>'
+                f'{bullet_html}'
+                f'{resources_html}'
                 f'</div>'
             )
             st.markdown(roadmap_html, unsafe_allow_html=True)
+
+        st.download_button(
+            "Download Study Plan & Links (.md)",
+            data=_format_markdown_report(analysis),
+            file_name="matchwise-study-plan.md",
+            mime="text/markdown",
+            key="download_study_plan",
+        )
+    elif analysis.learning_roadmap:
+        st.info("Learning steps generated.")
     else:
         st.success("No skill gaps were found in this comparison.")
 
@@ -824,6 +995,30 @@ def _render_compare_results(compare_result: CompareResult) -> None:
         )
         st.markdown(card_html, unsafe_allow_html=True)
 
+    gap_counts: dict[str, int] = {}
+    for item in compare_result.rankings:
+        for gap in item.top_gaps:
+            gap_counts[gap] = gap_counts.get(gap, 0) + 1
+    if gap_counts:
+        st.markdown("### High-Leverage Learning Gaps Across Roles")
+        st.caption("Close high-frequency gaps below using roadmap.sh tracks to unlock multiple target roles at once:")
+        for skill, count in sorted(gap_counts.items(), key=lambda kv: (-kv[1], kv[0]))[:8]:
+            guide = get_skill_learning_guide(skill)
+            res_html = _render_resources_html(
+                str(guide["roadmap_url"]),
+                str(guide["roadmap_label"]),
+                guide["resources"],  # type: ignore[arg-type]
+            )
+            gap_card = (
+                f'<div class="mw-card">'
+                f'<div class="mw-card-title"><strong>{html.escape(skill)}</strong>'
+                f'<span class="mw-impact-pill">Gap in {count}/{len(compare_result.rankings)} roles · ⏱ {html.escape(str(guide["estimated_hours"]))}</span></div>'
+                f'<div style="font-size:0.88rem;color:#dce7f3;">{html.escape(str(guide["task"]))}</div>'
+                f'{res_html}'
+                f'</div>'
+            )
+            st.markdown(gap_card, unsafe_allow_html=True)
+
 
 def _render_taxonomy_and_benchmark() -> None:
     st.subheader("Curated Skill Taxonomy")
@@ -854,7 +1049,11 @@ def _render_taxonomy_and_benchmark() -> None:
             with st.expander(f"{cat} ({len(grouped[cat])} skills)", expanded=expanded):
                 for canonical, aliases in grouped[cat]:
                     alias_text = ", ".join(aliases) if aliases else "none"
-                    st.markdown(f"- **{canonical}** — aliases: `{alias_text}`")
+                    guide = get_skill_learning_guide(canonical, cat)
+                    st.markdown(
+                        f"- **{canonical}** — aliases: `{alias_text}` · "
+                        f"[{guide['roadmap_label']}]({guide['roadmap_url']})"
+                    )
 
     st.divider()
     st.subheader("Synthetic Starter Benchmark (B0 vs B1 vs H1)")

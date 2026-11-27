@@ -12,7 +12,7 @@ from app.schemas import (
     SkillMatch,
 )
 from app.services.requirements import extract_job_requirements
-from app.services.roadmap import build_roadmap
+from app.services.roadmap import build_roadmap, get_skill_learning_guide
 from app.services.similarity import semantic_similarity
 from app.services.skill_extraction import extract_skills
 
@@ -83,6 +83,7 @@ def analyze_resume_job(resume_text: str, job_description: str, semantic_weight: 
         stats["weight"] += requirement.weight
         stats["covered"] += requirement.weight * match_value
 
+        guide = get_skill_learning_guide(requirement.skill, requirement.category)
         matches.append(SkillMatch(
             skill=requirement.skill,
             category=requirement.category,
@@ -94,6 +95,10 @@ def analyze_resume_job(resume_text: str, job_description: str, semantic_weight: 
             evidence=evidence,
             explanation=explanation,
             requirement_rationale=requirement.rationale,
+            roadmap_url=str(guide["roadmap_url"]),
+            roadmap_label=str(guide["roadmap_label"]),
+            learning_resources=guide["resources"],  # type: ignore[arg-type]
+            estimated_hours=str(guide["estimated_hours"]),
         ))
 
     coverage_score = 100.0 * covered / total_weight
@@ -112,7 +117,20 @@ def analyze_resume_job(resume_text: str, job_description: str, semantic_weight: 
     partial_ordered = [
         item.skill for item in sorted(partial, key=lambda x: -x.weight)
     ]
-    roadmap = build_roadmap(missing_ordered, partial_ordered)
+    skill_meta = {
+        item.skill: {
+            "weight": item.weight,
+            "match_value": item.match_value,
+            "category": item.category,
+        }
+        for item in matches
+    }
+    roadmap = build_roadmap(
+        missing_ordered,
+        partial_ordered,
+        skill_meta=skill_meta,
+        total_weight=total_weight,
+    )
 
     required_skills = {item.skill for item in requirements}
     resume_detected = sorted(resume_skill_names)

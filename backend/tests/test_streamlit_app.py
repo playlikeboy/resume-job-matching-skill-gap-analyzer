@@ -20,6 +20,8 @@ def test_streamlit_single_role_analysis_runs():
     assert not at.exception
     assert at.session_state["analysis_result"] is not None
     assert at.session_state["analysis_result"].requirements_found > 0
+    assert any(ms.key == "sim_learned_skills" for ms in at.multiselect)
+    assert any("https://roadmap.sh/" in m.value for m in at.markdown)
 
 
 def test_streamlit_loads_devops_and_all_sample_pdfs():
