@@ -74,3 +74,15 @@ def test_streamlit_taxonomy_and_benchmark_runs():
     bench_btn.click().run()
     assert not at.exception
     assert set(at.session_state["benchmark_results"]) == {"B0", "B1", "H1"}
+
+
+def test_streamlit_evicts_stale_app_modules_on_hot_reload():
+    import sys
+    import types
+
+    sys.modules["app.schemas"] = types.ModuleType("app.schemas")
+    at = AppTest.from_file(APP_PATH, default_timeout=15)
+    at.run()
+    assert not at.exception
+    assert hasattr(sys.modules["app.schemas"], "LearningResource")
+    assert hasattr(sys.modules["app.services.roadmap"], "get_skill_learning_guide")

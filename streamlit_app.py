@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import html
+import importlib
 import json
 import sys
 from pathlib import Path
@@ -12,8 +13,33 @@ import streamlit as st
 
 REPO_ROOT = Path(__file__).resolve().parent
 BACKEND_ROOT = REPO_ROOT / "backend"
-if str(BACKEND_ROOT) not in sys.path:
-    sys.path.insert(0, str(BACKEND_ROOT))
+if str(BACKEND_ROOT) in sys.path:
+    sys.path.remove(str(BACKEND_ROOT))
+sys.path.insert(0, str(BACKEND_ROOT))
+
+
+def _ensure_fresh_backend_modules() -> None:
+    """Evict stale or shadowed `app` modules on hot-reload (e.g. Streamlit Cloud pulls)."""
+    loaded_app = sys.modules.get("app")
+    loaded_schemas = sys.modules.get("app.schemas")
+    loaded_roadmap = sys.modules.get("app.services.roadmap")
+    loaded_analysis = sys.modules.get("app.services.analysis")
+
+    wrong_origin = loaded_app is not None and not str(
+        getattr(loaded_app, "__file__", "")
+    ).startswith(str(BACKEND_ROOT))
+    stale_schemas = loaded_schemas is not None and not hasattr(loaded_schemas, "LearningResource")
+    stale_roadmap = loaded_roadmap is not None and not hasattr(loaded_roadmap, "get_skill_learning_guide")
+    stale_analysis = loaded_analysis is not None and not hasattr(loaded_analysis, "_score_band")
+
+    if wrong_origin or stale_schemas or stale_roadmap or stale_analysis:
+        for mod_name in list(sys.modules):
+            if mod_name == "app" or mod_name.startswith("app."):
+                sys.modules.pop(mod_name, None)
+        importlib.invalidate_caches()
+
+
+_ensure_fresh_backend_modules()
 
 from app.config import get_settings  # noqa: E402
 from app.schemas import AnalysisResult, CompareResult, JobItem, LearningResource, SkillMatch  # noqa: E402
